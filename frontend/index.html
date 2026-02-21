@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SES — Startup Ecosystem Support Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════════════════════ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg">
+    <div class="auth-orb auth-orb-1"></div>
+    <div class="auth-orb auth-orb-2"></div>
+    <div class="auth-orb auth-orb-3"></div>
+    <canvas id="auth-canvas"></canvas>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" fill="url(#logoGrad)" />
+          <path d="M14 8L20 11.5V18.5L14 22L8 18.5V11.5L14 8Z" fill="rgba(255,255,255,0.15)" />
+          <defs>
+            <linearGradient id="logoGrad" x1="2" y1="2" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#3B82F6"/>
+              <stop offset="100%" stop-color="#06B6D4"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">S<span class="logo-accent">ES</span></span>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-bottom:10px;">
+      <span style="background:linear-gradient(135deg,#3B82F6,#06B6D4);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;padding:4px 14px;border-radius:20px;text-transform:uppercase;">🏆 For Hackathon</span>
+    </div>
+    <h1 class="auth-heading">Startup Ecosystem<br/>Support</h1>
+    <p class="auth-sub">Connecting startups, investors, and institutions with AI-powered intelligence.</p>
+
+    <div class="auth-badges">
+    </div>
+
+    <div class="auth-card">
+      <!-- Mode Tabs -->
+      <div class="tab-group" id="auth-tabs">
+        <button type="button" class="tab-btn active" data-tab="login">Sign In</button>
+        <button type="button" class="tab-btn" data-tab="register">Register</button>
+      </div>
+
+      <!-- Role Selector (Register only) -->
+      <div id="role-selector" class="role-selector hidden">
+        <button type="button" class="role-btn active" data-role="startup">
+          <span class="role-icon">🚀</span>
+          <span>Startup</span>
+        </button>
+        <button type="button" class="role-btn" data-role="investor">
+          <span class="role-icon">💼</span>
+          <span>Investor</span>
+        </button>
+      </div>
+
+      <!-- Step 1: Credentials -->
+      <div id="step-credentials">
+        <!-- Email login toggle -->
+        <button type="button" id="btn-show-email" class="btn-ghost" style="width:100%;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="toggleEmailFields()">✉️ Sign in with Email</button>
+        <div id="email-login-fields" class="hidden">
+          <div id="name-field" class="hidden">
+            <label class="form-label">Company / Full Name</label>
+            <input type="text" class="form-input" id="register-name" placeholder="Enter your name or company" />
+          </div>
+          <div>
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" id="login-email" placeholder="you@company.com" />
+          </div>
+          <div>
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="login-password" placeholder="••••••••••••" />
+          </div>
+          <button type="button" class="btn-primary" id="btn-continue" onclick="handleAuthStep()">Continue →</button>
+        </div>
+
+        <!-- Social Login -->
+        <div class="social-divider"><span>or continue with</span></div>
+        <div class="social-grid">
+          <button type="button" class="social-btn social-github" onclick="socialLogin('github')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </button>
+          <button type="button" class="social-btn social-google" onclick="socialLogin('google')">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google
+          </button>
+          <button type="button" class="social-btn social-mygov" onclick="socialLogin('mygov')">
+            <span style="font-size:16px;">🏛️</span>
+            myGov
+          </button>
+          <button type="button" class="social-btn social-asanimza" onclick="socialLogin('asanimza')">
+            <span style="font-size:16px;">🔏</span>
+            Asan İmza
+          </button>
+        </div>
+      </div><!-- end step-credentials -->
+
+      <!-- Step 2: MFA -->
+      <div id="step-mfa" class="hidden">
+        <div class="mfa-box">
+          <div class="mfa-icon">🔐</div>
+          <div class="mfa-title">Two-Factor Authentication</div>
+          <div class="mfa-sub">Enter the 6-digit code from your authenticator app</div>
+        </div>
+        <div class="mfa-inputs">
+          <input type="text" maxlength="1" class="mfa-digit" />
+          <input type="text" maxlength="1" class="mfa-digit" />
+          <input type="text" maxlength="1" class="mfa-digit" />
+          <input type="text" maxlength="1" class="mfa-digit" />
+          <input type="text" maxlength="1" class="mfa-digit" />
+          <input type="text" maxlength="1" class="mfa-digit" />
+        </div>
+        <button type="button" class="btn-primary" id="btn-verify" onclick="verifyMFA()">Verify & Sign In</button>
+      </div>
+
+      <!-- Demo Access -->
+      <div class="demo-section">
+        <div class="demo-divider"><span>Quick Demo Access</span></div>
+        <div class="demo-grid">
+          <button type="button" class="demo-btn" onclick="loginAs('investor')">💼 Investor</button>
+          <button type="button" class="demo-btn" onclick="loginAs('startup')">🚀 Startup</button>
+          <button type="button" class="demo-btn" onclick="loginAs('admin')">⚙️ Compliance Officer</button>
+          <button type="button" class="demo-btn" onclick="loginAs('superadmin')">👑 Ecosystem Manager</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="auth-footer"></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════════════════════ -->
+<div id="app-shell" class="app-shell hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-mark logo-mark-sm">
+          <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" fill="url(#lg2)"/>
+            <defs><linearGradient id="lg2" x1="2" y1="2" x2="26" y2="26"><stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs>
+          </svg>
+        </div>
+        <span class="logo-text logo-text-sm">S<span class="logo-accent">ES</span></span>
+      </div>
+      <div class="sidebar-badges">
+        <span class="badge badge-green badge-xs">✓ Verified</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <!-- Populated by JS -->
+    </nav>
+
+    <div class="sidebar-user" id="sidebar-user">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
+
+  <!-- OVERLAY (mobile) -->
+  <div class="sidebar-overlay hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button type="button" class="hamburger" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <span class="badge badge-blue">🔒 Secure Session</span>
+        <button type="button" id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <div class="topbar-avatar" id="topbar-avatar"></div>
+        <button type="button" class="btn-signout" onclick="signOut()">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content" id="page-content">
+      <!-- Pages rendered by JS -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <span>© 2025 SES · Startup Ecosystem Support Platform</span>
+      <div class="footer-badges">
+        <span class="badge badge-blue badge-xs">🔒 AES-256</span>
+        <span class="badge badge-green badge-xs">✓ SOC2</span>
+        <span class="badge badge-blue badge-xs">GDPR</span>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Modal</h3>
+      <button type="button" class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE TEMPLATES (hidden, cloned by JS)
+═══════════════════════════════════════════════════════ -->
+
+<!-- INVESTOR DASHBOARD -->
+<template id="tpl-investor-dash">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Investor Dashboard</h1>
+      <p class="page-sub">Your portfolio overview & market intelligence</p>
+    </div>
+    <div class="flex gap-2">
+      <span class="badge badge-green">✓ Verified Investor</span>
+      <span class="badge badge-blue">💼 Active</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="inv-stats"></div>
+
+  <!-- Main grid -->
+  <div class="inv-grid mt-6">
+    <!-- Hot Startups -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">🔥 Hot Startups</h3>
+        <button type="button" class="btn-sm btn-ghost" onclick="navigateTo('discovery')">Browse All →</button>
+      </div>
+      <div id="inv-featured"></div>
+    </div>
+
+    <!-- AI Advisor mini chat -->
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-header">
+        <h3 class="card-title">🤖 AI Advisor</h3>
+        <span class="badge badge-blue badge-xs">Live</span>
+      </div>
+      <div id="inv-ai-msgs" class="inv-chat-msgs"></div>
+      <div class="inv-chat-input">
+        <input type="text" id="inv-ai-input" class="form-input" placeholder="Ask about markets, risk, deal flow…" onkeydown="if(event.key==='Enter')sendInvChat()" />
+        <button type="button" class="btn-primary btn-sm" onclick="sendInvChat()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="card mt-5">
+    <div class="card-header">
+      <h3 class="card-title">📋 Recent Activity</h3>
+    </div>
+    <div id="inv-activity"></div>
+  </div>
+</template>
+
+<!-- DISCOVERY FEED -->
+<template id="tpl-discovery">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Discovery Feed</h1>
+      <p class="page-sub">Explore verified startups seeking investment</p>
+    </div>
+    <span class="badge badge-blue" id="filter-count">6 startups</span>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">Filter by:</span>
+    <select class="filter-select" id="f-industry" onchange="filterStartups()">
+      <option value="">All Industries</option>
+      <option>FinTech</option><option>CleanTech</option><option>HealthTech</option>
+      <option>EdTech</option><option>Logistics</option><option>CyberSec</option>
+    </select>
+    <select class="filter-select" id="f-stage" onchange="filterStartups()">
+      <option value="">All Stages</option>
+      <option>Pre-Seed</option><option>Seed</option><option>Series A</option><option>Series B</option>
+    </select>
+    <select class="filter-select" id="f-risk" onchange="filterStartups()">
+      <option value="">All Risk Levels</option>
+      <option>Low</option><option>Medium</option><option>High</option>
+    </select>
+  </div>
+
+  <div class="startup-grid" id="startup-grid"></div>
+</template>
+
+<!-- PORTFOLIO -->
+<template id="tpl-portfolio">
+  <div class="page-header">
+    <h1 class="page-title">My Portfolio</h1>
+  </div>
+  <div class="stats-row" id="portfolio-stats"></div>
+  <div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">Active Investments</h2></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>
+          <th>Startup</th><th>Invested</th><th>Current Value</th><th>ROI</th><th>Status</th>
+        </tr></thead>
+        <tbody id="portfolio-table"></tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<!-- STARTUP PROFILE -->
+<template id="tpl-profile">
+  <div class="page-header">
+    <div><h1 class="page-title">Startup Profile</h1><p class="page-sub">Manage your Startup ID</p></div>
+    <div class="flex gap-2">
+      <span class="badge badge-green">✓ Verified</span>
+      <span class="badge badge-blue">🔒 Encrypted</span>
+    </div>
+  </div>
+  <div class="profile-grid">
+    <div class="profile-card card">
+      <div class="profile-avatar">N</div>
+      <h2 class="profile-name" id="p-name">NovaMed AI</h2>
+      <p class="profile-meta" id="p-meta">HealthTech · Series A</p>
+      <div class="profile-badges">
+        <span class="badge badge-green">✓ Verified Profile</span>
+        <span class="badge badge-blue">🔒 Data Encrypted</span>
+      </div>
+      <div class="profile-stats">
+        <div class="profile-stat"><div class="stat-num" id="p-team">12</div><div class="stat-lbl">Team</div></div>
+        <div class="profile-stat"><div class="stat-num" id="p-funded">60%</div><div class="stat-lbl">Funded</div></div>
+      </div>
+    </div>
+    <div class="card profile-form-card">
+      <h3 class="card-title mb-4">Edit Profile</h3>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="pf-name" value="NovaMed AI" /></div>
+        <div class="form-group"><label class="form-label">Industry</label><input class="form-input" id="pf-industry" value="HealthTech" /></div>
+        <div class="form-group"><label class="form-label">Funding Stage</label><input class="form-input" id="pf-stage" value="Series A" /></div>
+        <div class="form-group"><label class="form-label">Team Size</label><input class="form-input" id="pf-team" value="12" /></div>
+        <div class="form-group full-span"><label class="form-label">Website</label><input class="form-input" id="pf-website" value="https://novamed.ai" /></div>
+        <div class="form-group full-span"><label class="form-label">Pitch / Description</label><textarea class="form-input form-textarea" id="pf-desc">AI-powered diagnostics reducing misdiagnosis by 40%.</textarea></div>
+      </div>
+      <button type="button" class="btn-primary mt-4" onclick="saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</template>
+
+<!-- AI EXAMINER -->
+<template id="tpl-ai-examiner">
+  <div class="page-header">
+    <div class="flex items-center gap-3">
+      <div class="ai-icon-big">🤖</div>
+      <div><h1 class="page-title">AI Product Examiner</h1><p class="page-sub">GPT-4 powered pitch analysis & market intelligence</p></div>
+    </div>
+  </div>
+  <div class="ai-key-banner" id="ai-key-banner">
+    <span>⚡ Enter your OpenAI API Key to activate GPT-4 analysis</span>
+    <input type="password" class="api-key-input" id="openai-key" placeholder="sk-..." />
+    <button type="button" class="btn-sm btn-blue" onclick="saveApiKey()">Activate</button>
+  </div>
+  <div class="ai-grid">
+    <div class="card">
+      <label class="form-label mb-2">Your Pitch / Product Description</label>
+      <textarea class="form-input form-textarea ai-textarea" id="ai-pitch" placeholder="Describe your product, target market, business model, traction metrics, team background, and competitive advantages..."></textarea>
+      <div class="ai-options">
+        <label class="form-label">Analysis Focus</label>
+        <div class="ai-option-btns">
+          <button type="button" class="option-btn active" data-opt="full">Full Analysis</button>
+          <button type="button" class="option-btn" data-opt="market">Market Fit</button>
+          <button type="button" class="option-btn" data-opt="risk">Risk Assessment</button>
+          <button type="button" class="option-btn" data-opt="pitch">Pitch Polish</button>
+        </div>
+      </div>
+      <button type="button" class="btn-primary mt-4" id="btn-analyze" onclick="analyzeWithGPT()">
+        <span id="analyze-btn-text">🔍 Analyze with GPT-4</span>
+      </button>
+    </div>
+    <div class="card ai-result-panel" id="ai-result-panel">
+      <div class="ai-empty" id="ai-empty">
+        <div class="ai-empty-icon">🧠</div>
+        <p>Paste your pitch and GPT-4 will deliver market analysis, strength assessment, investor readiness score, and pitch improvement tips.</p>
+      </div>
+      <div id="ai-result" class="hidden"></div>
+    </div>
+  </div>
+  <!-- Chat with AI -->
+  <div class="card mt-5">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="chat-ai-icon">💬</span>
+      <h3 class="card-title">Chat with AI Advisor</h3>
+      <span class="badge badge-blue">GPT-4</span>
+    </div>
+    <div class="ai-chat-messages" id="ai-chat-messages">
+      <div class="ai-chat-msg ai-msg">
+        <div class="ai-chat-bubble">Hello! I'm your AI startup advisor powered by GPT-4. Ask me anything about fundraising, product-market fit, or how to improve your pitch.</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-row">
+      <input class="form-input" id="ai-chat-input" placeholder="Ask GPT-4 anything about your startup..." onkeydown="if(event.key==='Enter') sendAIChat()" />
+      <button type="button" class="btn-primary btn-sm" onclick="sendAIChat()">Send →</button>
+    </div>
+    <p class="encrypted-note">🔒 Conversations are processed securely via OpenAI API</p>
+  </div>
+</template>
+
+<!-- FUNDING TRACKER -->
+<template id="tpl-funding">
+  <div class="page-header"><h1 class="page-title">Funding Tracker</h1></div>
+  <div class="stats-row" id="funding-stats"></div>
+  <div class="card mt-5">
+    <div class="funding-header">
+      <div><h2 class="card-title">NovaMed AI</h2><p class="card-sub">Series A Round · Open</p></div>
+      <div class="funding-pct">60%<span>Funded</span></div>
+    </div>
+    <div class="big-progress-wrap">
+      <div class="big-progress-bar"><div class="big-progress-fill" style="width:60%"></div></div>
+      <div class="big-progress-labels"><span>$0</span><span class="center-lbl">$1.2M raised</span><span>$2M goal</span></div>
+    </div>
+    <div class="funding-meta-grid">
+      <div class="funding-meta-item"><div class="fm-val">VC Capital</div><div class="fm-lbl">Lead Investor</div></div>
+      <div class="funding-meta-item"><div class="fm-val">$12M</div><div class="fm-lbl">Valuation</div></div>
+      <div class="funding-meta-item"><div class="fm-val">$25K</div><div class="fm-lbl">Min Ticket</div></div>
+      <div class="funding-meta-item"><div class="fm-val">Mar 31</div><div class="fm-lbl">Closing Date</div></div>
+    </div>
+  </div>
+  <div class="card mt-5">
+    <h3 class="card-title mb-4">Recent Investments</h3>
+    <div class="invest-list">
+      <div class="invest-row"><div class="invest-info"><div class="invest-dot"></div><div><div class="invest-name">Angel Network A</div><div class="invest-date">Feb 18, 2025</div></div></div><span class="invest-amount">$250,000</span></div>
+      <div class="invest-row"><div class="invest-info"><div class="invest-dot"></div><div><div class="invest-name">TechFund III</div><div class="invest-date">Feb 12, 2025</div></div></div><span class="invest-amount">$500,000</span></div>
+      <div class="invest-row"><div class="invest-info"><div class="invest-dot"></div><div><div class="invest-name">Individual (Anonymous)</div><div class="invest-date">Feb 05, 2025</div></div></div><span class="invest-amount">$50,000</span></div>
+    </div>
+  </div>
+</template>
+
+<!-- CHAT -->
+<template id="tpl-chat">
+  <div class="page-header"><h1 class="page-title">Messages</h1></div>
+  <div class="chat-shell">
+    <div class="chat-contacts card">
+      <p class="chat-contacts-label">Conversations</p>
+      <div class="contact-item active">
+        <div class="contact-avatar">N</div>
+        <div class="contact-info"><div class="contact-name">NovaMed AI</div><div class="contact-role">Startup</div></div>
+        <div class="contact-dot"></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-avatar">F</div>
+        <div class="contact-info"><div class="contact-name">FinFlow</div><div class="contact-role">Startup</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-avatar">A</div>
+        <div class="contact-info"><div class="contact-name">Alex Chen</div><div class="contact-role">Investor</div></div>
+      </div>
+    </div>
+    <div class="chat-window card">
+      <div class="chat-topbar">
+        <div class="chat-peer">
+          <div class="contact-avatar">N</div>
+          <div><div class="chat-peer-name">NovaMed AI</div><div class="chat-status"><span class="status-dot"></span>Online</div></div>
+        </div>
+        <div class="chat-actions">
+          <button type="button" class="btn-sm btn-ghost">📄 Request Pitch Deck</button>
+          <button type="button" class="btn-sm btn-ghost">📅 Schedule Meeting</button>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <input class="form-input" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button type="button" class="btn-primary btn-sm" onclick="sendMessage()">→</button>
+      </div>
+      <p class="encrypted-note">🔒 End-to-end encrypted messaging</p>
+    </div>
+  </div>
+</template>
+
+<!-- KPI DASHBOARD -->
+<template id="tpl-kpi">
+  <div class="page-header"><h1 class="page-title">KPI Dashboard</h1><p class="page-sub">Real-time platform metrics</p></div>
+  <div class="stats-row" id="kpi-stats"></div>
+  <div class="charts-grid mt-6">
+    <div class="card chart-card">
+      <h3 class="card-title mb-4">Investment Volume (M USD)</h3>
+      <canvas id="chart-investment" height="180"></canvas>
+    </div>
+    <div class="card chart-card">
+      <h3 class="card-title mb-4">User Growth</h3>
+      <canvas id="chart-users" height="180"></canvas>
+    </div>
+    <div class="card chart-card">
+      <h3 class="card-title mb-4">Industry Breakdown</h3>
+      <canvas id="chart-industry" height="180"></canvas>
+    </div>
+    <div class="card chart-card">
+      <h3 class="card-title mb-4">Commission Revenue (K USD)</h3>
+      <canvas id="chart-commission" height="180"></canvas>
+    </div>
+  </div>
+</template>
+
+<!-- AUDIT -->
+<template id="tpl-audit">
+  <div class="page-header">
+    <h1 class="page-title">Security & Audit</h1>
+    <div class="flex gap-2">
+      <span class="badge badge-blue">🔒 Encrypted</span>
+    </div>
+  </div>
+  <div class="stats-row" id="audit-stats"></div>
+  <div class="card mt-6">
+    <div class="card-header">
+      <h2 class="card-title">Audit Log</h2>
+      <button type="button" class="btn-sm btn-ghost">Export CSV</button>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Event</th><th>User</th><th>IP Address</th><th>Timestamp</th><th>Severity</th></tr></thead>
+        <tbody id="audit-table"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="incident-card mt-5">
+    <div class="incident-header"><span class="incident-icon">🚨</span><h3>Active Incident: INC-2025-003</h3><span class="badge badge-red">Critical</span></div>
+    <p class="incident-desc">Unauthorized access attempt from IP 45.33.32.156 (Tor exit node). WAF auto-block applied. Security team investigating.</p>
+    <div class="incident-actions">
+      <button type="button" class="btn-danger">View Details</button>
+      <button type="button" class="btn-sm btn-ghost">Mark Resolved</button>
+    </div>
+  </div>
+</template>
+
+<!-- REGISTRY -->
+<template id="tpl-registry">
+  <div class="page-header"><h1 class="page-title">Registry Management</h1></div>
+  <div class="stats-row" id="registry-stats"></div>
+  <div class="card mt-6">
+    <div class="card-header"><h2 class="card-title">Applications</h2></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Applicant</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="registry-table"></tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<!-- USERS -->
+<template id="tpl-users">
+  <div class="page-header">
+    <h1 class="page-title">User Management</h1>
+    <button type="button" class="btn-primary btn-sm">+ Invite User</button>
+  </div>
+  <div class="stats-row" id="users-stats"></div>
+  <div class="card mt-6">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Email</th><th>Joined</th><th>Status</th></tr></thead>
+        <tbody id="users-table"></tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<!-- Chart.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Socket.io client from CDN (avoids mixed-content issues) -->
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="app.js"></script>
+<div id="floating-chat" class="floating-chat hidden">
+  <div class="chat-header">
+    <span>✨ AI Ecosystem Advisor</span>
+    <button type="button" onclick="toggleFloatingChat()" class="chat-close-btn">✕</button>
+  </div>
+  <div class="chat-body" id="floating-chat-msgs">
+    <div class="msg other">Hello! I am your AI Advisor. Do you need help analyzing a startup's risk/reward or finding an investment?</div>
+  </div>
+  <div class="chat-footer">
+    <input type="text" id="floating-chat-input" placeholder="Ask AI for advice..." onkeypress="if(event.key==='Enter') sendFloatingChat()" />
+    <button type="button" onclick="sendFloatingChat()" class="btn-primary" style="padding: 8px 16px;">Send</button>
+  </div>
+</div>
+<!-- INVEST MODAL -->
+<div id="invest-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeInvestModal()">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">💰 Invest Now</h3>
+      <button type="button" class="modal-close" onclick="closeInvestModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="invest-startup-name" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:18px;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);"></div>
+      <label style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:8px;">Investment Amount (USD)</label>
+      <input type="number" id="invest-amount" class="form-input" placeholder="e.g. 25000" oninput="calcFee()" style="margin-bottom:14px;" />
+      <div id="fee-breakdown" style="display:none;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+          <span style="color:var(--text-muted);">Investment Amount</span>
+          <span id="fb-amount" style="font-weight:600;color:var(--text-primary);"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;">
+          <span style="color:var(--text-muted);">Platform Fee (1%)</span>
+          <span id="fb-fee" style="font-weight:600;color:#f59e0b;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:14px;">
+          <span style="font-weight:700;color:var(--text-primary);">Total</span>
+          <span id="fb-total" style="font-weight:800;color:#00c2a8;"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn-ghost" style="flex:1" onclick="closeInvestModal()">Cancel</button>
+        <button type="button" style="flex:2;padding:10px 20px;background:linear-gradient(135deg,#00c2a8,#10b981);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:14px;cursor:pointer;" onclick="confirmInvest()">Confirm Investment</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="startup-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeStartupModal()">
+  <div class="modal-box" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="modal-startup-logo" style="width:46px;height:46px;border-radius:12px;flex-shrink:0;"></div>
+        <div>
+          <div id="modal-startup-name" class="modal-title"></div>
+          <div id="modal-startup-meta" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></div>
+        </div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeStartupModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-startup-body"></div>
+      <div style="margin-top:16px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">🤖 AI Analysis</div>
+        <div id="modal-ai-content"></div>
+        <button type="button" class="btn-primary btn-sm" style="margin-top:10px;" onclick="runModalAIAnalysis()">Run AI Analysis</button>
+        <button type="button" style="margin-top:10px;margin-left:8px;padding:8px 18px;background:linear-gradient(135deg,#00c2a8,#10b981);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;" onclick="openInvestModal()">💰 Invest Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button type="button" id="chat-toggle-btn" class="chat-toggle-btn hidden" onclick="toggleFloatingChat()">💬</button>
+
+<!-- ── Gov Login Modal (myGov / Aşan İmza) ── -->
+<div id="gov-login-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeGovModal()">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title" id="gov-modal-title">🏛️ myGov Azerbaijan</span>
+      <button type="button" class="modal-close" onclick="closeGovModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="padding:16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:16px;">
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0;" id="gov-modal-desc"></p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Identification Code</label>
+        <input type="text" id="gov-modal-input" class="form-input" style="font-family:var(--font-mono);letter-spacing:0.08em;" onkeydown="if(event.key==='Enter')submitGovLogin()" />
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:-8px;">
+        🔒 Your credentials are verified directly with government servers. SES does not store them.
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+      <button type="button" class="btn-ghost" onclick="closeGovModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="submitGovLogin()">🔐 Authenticate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Create Team Modal ── -->
+<div id="create-team-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeCreateTeamModal()">
+  <div class="modal-box" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-header">
+      <span class="modal-title">🚀 Create a Hackathon Team</span>
+      <button type="button" class="modal-close" onclick="closeCreateTeamModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="create-team-form" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label">Team Name *</label>
+          <input type="text" id="ct-name" class="form-input" placeholder="e.g. NeuralNomads" maxlength="40" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tagline</label>
+          <input type="text" id="ct-tagline" class="form-input" placeholder="One-line description of your idea" maxlength="80" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hackathon *</label>
+          <select id="ct-hackathon" class="form-input filter-select">
+            <option value="">— Select a hackathon —</option>
+            <option value="1">🤖 SES Startup Hackathon 2026</option>
+            <option value="2">💳 FinTech Innovation Cup</option>
+            <option value="3">🌱 GreenTech Challenge</option>
+            <option value="4">🏥 HealthTech Hackathon MENA</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Team Size</label>
+          <select id="ct-maxmembers" class="form-input filter-select">
+            <option value="3">3 members</option>
+            <option value="4">4 members</option>
+            <option value="5" selected>5 members</option>
+            <option value="6">6 members</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Roles You're Looking For</label>
+          <div class="ct-roles-grid">
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Frontend Dev"> Frontend Dev</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Backend Dev"> Backend Dev</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Full Stack Dev"> Full Stack Dev</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="ML Engineer"> ML Engineer</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="UX Designer"> UX Designer</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Product Manager"> Product Manager</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Business Analyst"> Business Analyst</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Blockchain Dev"> Blockchain Dev</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="DevOps Engineer"> DevOps Engineer</label>
+            <label class="ct-role-label"><input type="checkbox" class="ct-role" value="Data Scientist"> Data Scientist</label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+      <button type="button" class="btn-ghost" onclick="closeCreateTeamModal()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="submitCreateTeam()">🚀 Create Team</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
