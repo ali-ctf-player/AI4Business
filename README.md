@@ -103,7 +103,7 @@ Hackathon/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git clone https://github.com/ali-ctf-player/AI4Business.git
 cd YOUR_REPO
 ```
 
