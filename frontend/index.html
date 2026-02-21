@@ -62,6 +62,14 @@
           <span class="role-icon">💼</span>
           <span>Investor</span>
         </button>
+        <button type="button" class="role-btn" data-role="organizer">
+          <span class="role-icon">🏛️</span>
+          <span>Organizer</span>
+        </button>
+        <button type="button" class="role-btn" data-role="itcompany">
+          <span class="role-icon">💻</span>
+          <span>IT Company</span>
+        </button>
       </div>
 
       <!-- Step 1: Credentials -->
@@ -87,21 +95,13 @@
         <!-- Social Login -->
         <div class="social-divider"><span>or continue with</span></div>
         <div class="social-grid">
-          <button type="button" class="social-btn social-github" onclick="socialLogin('github')">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            GitHub
-          </button>
-          <button type="button" class="social-btn social-google" onclick="socialLogin('google')">
-            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-            Google
-          </button>
           <button type="button" class="social-btn social-mygov" onclick="socialLogin('mygov')">
             <span style="font-size:16px;">🏛️</span>
             myGov
           </button>
-          <button type="button" class="social-btn social-asanimza" onclick="socialLogin('asanimza')">
-            <span style="font-size:16px;">🔏</span>
-            Asan İmza
+          <button type="button" class="social-btn social-others" onclick="openOthersModal()">
+            <span style="font-size:16px;">⋯</span>
+            Others
           </button>
         </div>
       </div><!-- end step-credentials -->
@@ -124,27 +124,127 @@
         <button type="button" class="btn-primary" id="btn-verify" onclick="verifyMFA()">Verify & Sign In</button>
       </div>
 
-      <!-- Demo Access -->
-      <div class="demo-section">
-        <div class="demo-divider"><span>Quick Demo Access</span></div>
-        <div class="demo-grid">
-          <button type="button" class="demo-btn" onclick="loginAs('investor')">💼 Investor</button>
-          <button type="button" class="demo-btn" onclick="loginAs('startup')">🚀 Startup</button>
-          <button type="button" class="demo-btn" onclick="loginAs('admin')">⚙️ Compliance Officer</button>
-          <button type="button" class="demo-btn" onclick="loginAs('superadmin')">👑 Ecosystem Manager</button>
-        </div>
-        <button type="button" class="btn-hackathon-login" onclick="loginAs('startup');setTimeout(()=>navigateTo('hackathon'),50)">🏆 Login for Hackathon</button>
-        <button type="button" class="btn-hackathon-register" onclick="switchToHackathonRegister()">📝 Register for Hackathon</button>
+      <!-- Hackathon Buttons -->
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="btn-hackathon-login" onclick="openHackathonAuth('login')">🏆 Login for Hackathon</button>
+        <button type="button" class="btn-hackathon-register" onclick="openHackathonAuth('register')">📝 Register for Hackathon</button>
       </div>
     </div>
 
     <p class="auth-footer"></p>
   </div>
+
+  <!-- Quick Demo Access — top right floating panel -->
+  <div class="demo-float-panel">
+    <div class="demo-float-title">⚡ Quick Demo</div>
+    <div class="demo-float-grid">
+      <button type="button" class="demo-float-btn" onclick="loginAs('investor')">💼 Investor</button>
+      <button type="button" class="demo-float-btn" onclick="loginAs('startup')">🚀 Startup</button>
+      <button type="button" class="demo-float-btn" onclick="loginAs('admin')">⚙️ Compliance Officer</button>
+      <button type="button" class="demo-float-btn" onclick="loginAs('superadmin')">👑 Ecosystem Manager</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
-     APP SHELL
+     HACKATHON AUTH SCREEN
 ═══════════════════════════════════════════════════════ -->
+<div id="hackathon-auth-screen" class="auth-screen hidden">
+  <div class="auth-bg">
+    <div class="auth-orb auth-orb-1" style="background:radial-gradient(circle,rgba(245,158,11,0.35),transparent 70%)"></div>
+    <div class="auth-orb auth-orb-2" style="background:radial-gradient(circle,rgba(239,68,68,0.25),transparent 70%)"></div>
+    <div class="auth-orb auth-orb-3" style="background:radial-gradient(circle,rgba(16,185,129,0.2),transparent 70%)"></div>
+  </div>
+
+  <div class="auth-container">
+    <!-- Back button -->
+    <button type="button" onclick="closeHackathonAuth()" style="position:absolute;top:24px;left:24px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;backdrop-filter:blur(8px);">← Back</button>
+
+    <div class="auth-logo">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" fill="url(#hackLogoGrad)" />
+          <defs><linearGradient id="hackLogoGrad" x1="2" y1="2" x2="26" y2="26"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="logo-text">S<span class="logo-accent">ES</span></span>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-bottom:8px;">
+      <span style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;padding:4px 16px;border-radius:20px;text-transform:uppercase;">🏆 Hackathon Portal</span>
+    </div>
+    <h1 class="auth-heading" id="hack-auth-heading">Hackathon<br/>Registration</h1>
+    <p class="auth-sub">Join upcoming hackathons, form teams and build something amazing.</p>
+
+    <div class="auth-card">
+      <!-- Mode Tabs -->
+      <div class="tab-group" id="hack-auth-tabs">
+        <button type="button" class="tab-btn active" data-tab="hack-login" onclick="switchHackTab('hack-login')">Sign In</button>
+        <button type="button" class="tab-btn" data-tab="hack-register" onclick="switchHackTab('hack-register')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="hack-login-form">
+        <div>
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="hack-login-email" placeholder="you@example.com" />
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="hack-login-password" placeholder="••••••••••••" />
+        </div>
+        <button type="button" class="btn-primary" style="margin-top:16px;" onclick="submitHackLogin()">🏆 Sign In to Hackathon</button>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="hack-register-form" class="hidden">
+        <div>
+          <label class="form-label">Full Name</label>
+          <input type="text" class="form-input" id="hack-reg-name" placeholder="Your full name" />
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="hack-reg-email" placeholder="you@example.com" />
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="hack-reg-password" placeholder="Create a password" />
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Your Skills <span style="color:var(--text-muted);font-weight:400;">(comma separated)</span></label>
+          <input type="text" class="form-input" id="hack-reg-skills" placeholder="e.g. React, Python, UI/UX, AI" />
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Team Status</label>
+          <select class="form-input" id="hack-reg-team-status">
+            <option value="looking">🔍 Looking for a team</option>
+            <option value="have-team">👥 Already have a team</option>
+            <option value="solo">🧑 Going solo</option>
+          </select>
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Hackathon</label>
+          <select class="form-input" id="hack-reg-event">
+            <option value="hack1">AI Innovation Challenge 2025</option>
+            <option value="hack2">FinTech Disruption Hackathon</option>
+            <option value="hack3">Green Tech Solutions Sprint</option>
+            <option value="hack4">HealthTech Innovation Marathon</option>
+          </select>
+        </div>
+        <button type="button" class="btn-primary" style="margin-top:16px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="submitHackRegister()">🚀 Register for Hackathon</button>
+      </div>
+
+      <!-- Demo shortcut -->
+      <div class="demo-section" style="margin-top:16px;">
+        <div class="demo-divider"><span>Quick Demo</span></div>
+        <button type="button" class="demo-btn" style="width:100%;" onclick="loginAs('startup');setTimeout(()=>navigateTo('hackathon'),50)">🏆 Enter as Hackathon Participant</button>
+      </div>
+    </div>
+    <p class="auth-footer"></p>
+  </div>
+</div>
+
+
 <div id="app-shell" class="app-shell hidden">
 
   <!-- SIDEBAR -->
@@ -657,7 +757,61 @@
 
 <button type="button" id="chat-toggle-btn" class="chat-toggle-btn hidden" onclick="toggleFloatingChat()">💬</button>
 
-<!-- ── Gov Login Modal (myGov / Aşan İmza) ── -->
+<!-- ── Others Login Modal ── -->
+<div id="others-login-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeOthersModal()">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header" style="border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:0;">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">myGov ID</div>
+        <span class="modal-title" style="font-size:16px;">Other Login Methods</span>
+      </div>
+      <button type="button" class="modal-close" onclick="closeOthersModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <button class="others-method-btn" onclick="closeOthersModal();socialLogin('github')">
+        <span class="others-method-label" style="color:#24292E;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        </span>
+        <span class="others-method-text">Continue with GitHub</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();socialLogin('google')">
+        <span class="others-method-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle;"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        </span>
+        <span class="others-method-text">Continue with Google</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();openGovLoginModal('sima')">
+        <span class="others-method-label">SİMA</span>
+        <span class="others-method-text">With SİMA Signature</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();openGovLoginModal('asanimza')">
+        <span class="others-method-label" style="color:#9b30d0;font-style:italic;font-weight:800;">ASAN imza</span>
+        <span class="others-method-text">With Asan Signature</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();openGovLoginModal('sima-token')">
+        <span class="others-method-label">SİMA Token</span>
+        <span class="others-method-text">With SİMA Token (Electronic Signature)</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();openGovLoginModal('fin')">
+        <span class="others-method-label">🪪</span>
+        <span class="others-method-text">With Identification Number</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+      <button class="others-method-btn" onclick="closeOthersModal();openGovLoginModal('bsxm')">
+        <span class="others-method-label" style="color:#1a1a1a;font-size:11px;font-weight:800;letter-spacing:0.05em;">BSXM</span>
+        <span class="others-method-text">With BSXM Electronic Signature</span>
+        <span class="others-method-info">ℹ️</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <div id="gov-login-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeGovModal()">
   <div class="modal-box" style="max-width:420px;">
     <div class="modal-header">
@@ -679,6 +833,48 @@
     <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
       <button type="button" class="btn-ghost" onclick="closeGovModal()">Cancel</button>
       <button type="button" class="btn-primary" onclick="submitGovLogin()">🔐 Authenticate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Create Hackathon Modal ── -->
+<div id="create-hackathon-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeCreateHackathonModal()">
+  <div class="modal-box" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-header">
+      <h3 class="modal-title">🏆 Create New Hackathon</h3>
+      <button type="button" class="modal-close" onclick="closeCreateHackathonModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label class="form-label">Hackathon Name *</label>
+        <input type="text" id="ch-name" class="form-input" placeholder="e.g. AI Innovation Challenge 2025" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="form-label">Date *</label>
+          <input type="date" id="ch-date" class="form-input" />
+        </div>
+        <div>
+          <label class="form-label">Max Teams</label>
+          <input type="number" id="ch-max-teams" class="form-input" placeholder="50" min="2" max="500" />
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Location *</label>
+        <input type="text" id="ch-location" class="form-input" placeholder="e.g. Baku, Azerbaijan / Online" />
+      </div>
+      <div>
+        <label class="form-label">Prize Pool</label>
+        <input type="text" id="ch-prize" class="form-input" placeholder="e.g. $10,000 or Certificate" />
+      </div>
+      <div>
+        <label class="form-label">Description</label>
+        <textarea id="ch-desc" class="form-input" rows="3" placeholder="Describe the hackathon theme, goals and requirements…" style="resize:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+      <button type="button" class="btn-ghost" onclick="closeCreateHackathonModal()">Cancel</button>
+      <button type="button" id="ch-submit-btn" class="btn-primary" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="submitCreateHackathon()">🏆 Create Hackathon</button>
     </div>
   </div>
 </div>

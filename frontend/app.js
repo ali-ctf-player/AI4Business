@@ -1,6 +1,8 @@
 'use strict';
 
-const API_URL = 'http://localhost:5000/api';
+// Auto-detect host so the app works from localhost AND from phone on same WiFi
+const _HOST = window.location.hostname;
+const API_URL   = `http://${_HOST}:5000/api`;
 
 const APP = {
   role: null,
@@ -69,7 +71,7 @@ let authMode = 'login';
 let selectedRole = 'startup';
 
 // ─── SOCIAL LOGIN ──────────────────────────────────────
-const OAUTH_BASE = 'http://localhost:5000/api/auth';
+const OAUTH_BASE = `http://${_HOST}:5000/api/auth`;
 
 window.socialLogin = function(provider) {
   if (provider === 'github') {
@@ -83,18 +85,33 @@ window.socialLogin = function(provider) {
   }
 };
 
+window.openOthersModal = function() {
+  document.getElementById('others-login-modal')?.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+window.closeOthersModal = function() {
+  document.getElementById('others-login-modal')?.classList.add('hidden');
+  document.body.style.overflow = '';
+};
+
 function openGovLoginModal(type) {
-  const isAsan = type === 'asanimza';
+  const labels = {
+    mygov:      { title: '🏛️ myGov Azerbaijan',               desc: 'Enter your FIN code (Fərdi İdentifikasiya Nömrəsi) to login via myGov portal.',         placeholder: 'FIN Code (e.g. 5XY3B4Z)' },
+    asanimza:   { title: '🔏 Asan Signature',                  desc: 'Enter your Asan İmza PIN to authenticate with your digital signature certificate.',      placeholder: 'Asan İmza PIN (e.g. A1234567)' },
+    sima:       { title: 'SİMA Signature',                     desc: 'Enter your SİMA credentials to authenticate.',                                            placeholder: 'SİMA ID' },
+    'sima-token':{ title: 'SİMA Token (Electronic Signature)', desc: 'Insert your SİMA Token and enter your PIN.',                                              placeholder: 'Token PIN' },
+    fin:        { title: '🪪 Identification Number',           desc: 'Enter your national identification number to log in.',                                    placeholder: 'ID Number' },
+    bsxm:       { title: 'BSXM Electronic Signature',          desc: 'Authenticate using your BSXM Electronic Signature.',                                     placeholder: 'BSXM Certificate PIN' },
+  };
+  const cfg = labels[type] || labels['mygov'];
   const modal = document.getElementById('gov-login-modal');
   const title = document.getElementById('gov-modal-title');
   const desc  = document.getElementById('gov-modal-desc');
   const input = document.getElementById('gov-modal-input');
   if (!modal) return;
-  title.textContent = isAsan ? '🔏 Asan İmza — Digital Signature' : '🏛️ myGov Azerbaijan';
-  desc.textContent  = isAsan
-    ? 'Enter your Asan İmza PIN to authenticate with your digital signature certificate.'
-    : 'Enter your FIN code (Fərdi İdentifikasiya Nömrəsi) to login via myGov portal.';
-  input.placeholder = isAsan ? 'Asan İmza PIN (e.g. A1234567)' : 'FIN Code (e.g. 5XY3B4Z)';
+  title.textContent = cfg.title;
+  desc.textContent  = cfg.desc;
+  input.placeholder = cfg.placeholder;
   input.dataset.provider = type;
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -122,6 +139,79 @@ window.submitGovLogin = function() {
     showToastMsg('✅ Government authentication successful!');
     loginAs(demoUser.role);
   }, 1500);
+};
+
+// ─── HACKATHON AUTH PAGE ────────────────────────────────
+window.openHackathonAuth = function(tab = 'login') {
+  document.getElementById('auth-screen')?.classList.add('hidden');
+  document.getElementById('hackathon-auth-screen')?.classList.remove('hidden');
+  switchHackTab(tab);
+};
+
+window.closeHackathonAuth = function() {
+  document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
+  document.getElementById('auth-screen')?.classList.remove('hidden');
+};
+
+window.switchHackTab = function(tab) {
+  document.querySelectorAll('#hack-auth-tabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.getElementById('hack-login-form').classList.toggle('hidden', tab !== 'hack-login');
+  document.getElementById('hack-register-form').classList.toggle('hidden', tab !== 'hack-register');
+  document.getElementById('hack-auth-heading').innerHTML = tab === 'hack-login' ? 'Hackathon<br/>Sign In' : 'Hackathon<br/>Registration';
+};
+
+window.submitHackLogin = async function() {
+  const email = document.getElementById('hack-login-email').value.trim();
+  const password = document.getElementById('hack-login-password').value.trim();
+  if (!email || !password) { showToastMsg('⚠️ Please fill in all fields'); return; }
+  const btn = document.querySelector('#hack-login-form .btn-primary');
+  btn.disabled = true; btn.textContent = 'Signing in...';
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      APP.token = data.token; APP.userData = data.user; APP.role = data.user.role;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+      document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
+      loginAs(data.user.role);
+      setTimeout(() => navigateTo('hackathon'), 80);
+    } else {
+      showToastMsg('❌ ' + (data.message || 'Login failed'));
+    }
+  } catch { showToastMsg('❌ Cannot reach server'); }
+  btn.disabled = false; btn.textContent = '🏆 Sign In to Hackathon';
+};
+
+window.submitHackRegister = async function() {
+  const fullName   = document.getElementById('hack-reg-name').value.trim();
+  const email      = document.getElementById('hack-reg-email').value.trim();
+  const password   = document.getElementById('hack-reg-password').value.trim();
+  const skills     = document.getElementById('hack-reg-skills').value.trim();
+  const teamStatus = document.getElementById('hack-reg-team-status').value;
+  if (!fullName || !email || !password) { showToastMsg('⚠️ Please fill in required fields'); return; }
+  const btn = document.querySelector('#hack-register-form .btn-primary');
+  btn.disabled = true; btn.textContent = 'Registering...';
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, fullName, role: 'startup', skills, teamStatus })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToastMsg('✅ Registered! Please sign in.');
+      switchHackTab('hack-login');
+      document.getElementById('hack-login-email').value = email;
+    } else {
+      showToastMsg('❌ ' + (data.message || 'Registration failed'));
+    }
+  } catch { showToastMsg('❌ Cannot reach server'); }
+  btn.disabled = false; btn.textContent = '🚀 Register for Hackathon';
 };
 
 window.switchToHackathonRegister = function() {
@@ -261,7 +351,7 @@ window.loginAs = function(role) {
   buildSidebarNav(role);
   initSocket();
   
-  const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi' };
+  const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi', organizer:'hackathon', itcompany:'discovery' };
   navigateTo(defaultPages[role] || 'discovery');
 };
 
@@ -283,7 +373,7 @@ function updateUserUI() {
 }
 
 // ─── NAVIGATION & PAGES ────────────────────────────────
-const SELF_RENDER_PAGES = ['kpi','registry','users','audit','ai-examiner','hackathon'];
+const SELF_RENDER_PAGES = ['kpi','registry','users','audit','ai-examiner','hackathon','ai-hub','reports'];
 
 window.navigateTo = function(pageId) {
   const content = document.getElementById('page-content');
@@ -386,6 +476,7 @@ const NAV_CONFIG = {
     { page: 'hackathon',     icon: '🏆', label: 'Hackathons' },
     { page: 'chat',          icon: '💬', label: 'Messages' },
     { page: 'ai-examiner',   icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',        icon: '✨', label: 'AI Features' },
   ],
   startup:    [
     { page: 'profile',     icon: '🚀', label: 'My Profile' },
@@ -393,20 +484,41 @@ const NAV_CONFIG = {
     { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
     { page: 'chat',        icon: '💬', label: 'Messages' },
     { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
   ],
   admin:      [
-    { page: 'kpi',       icon: '📈', label: 'KPI Dashboard' },
-    { page: 'registry',  icon: '📋', label: 'Registry' },
-    { page: 'hackathon', icon: '🏆', label: 'Hackathons' },
-    { page: 'users',     icon: '👥', label: 'Users' },
-    { page: 'audit',     icon: '🔒', label: 'Audit Log' },
+    { page: 'kpi',         icon: '📈', label: 'KPI Dashboard' },
+    { page: 'registry',    icon: '📋', label: 'Registry' },
+    { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'users',       icon: '👥', label: 'Users' },
+    { page: 'reports',     icon: '📊', label: 'Reports' },
+    { page: 'audit',       icon: '🔒', label: 'Audit Log' },
+    { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
   ],
   superadmin: [
-    { page: 'kpi',       icon: '📈', label: 'KPI Dashboard' },
-    { page: 'registry',  icon: '📋', label: 'Registry' },
-    { page: 'hackathon', icon: '🏆', label: 'Hackathons' },
-    { page: 'users',     icon: '👥', label: 'Users' },
-    { page: 'audit',     icon: '🔒', label: 'Audit Log' },
+    { page: 'kpi',         icon: '📈', label: 'KPI Dashboard' },
+    { page: 'registry',    icon: '📋', label: 'Registry' },
+    { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'users',       icon: '👥', label: 'Users' },
+    { page: 'reports',     icon: '📊', label: 'Reports' },
+    { page: 'audit',       icon: '🔒', label: 'Audit Log' },
+    { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
+  ],
+  organizer: [
+    { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'users',       icon: '👥', label: 'Participants' },
+    { page: 'kpi',         icon: '📈', label: 'Overview' },
+    { page: 'chat',        icon: '💬', label: 'Messages' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
+  ],
+  itcompany: [
+    { page: 'discovery',   icon: '🔍', label: 'Discover Startups' },
+    { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'chat',        icon: '💬', label: 'Messages' },
+    { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
   ],
 };
 
@@ -668,16 +780,16 @@ window.renderAIExaminer = function() {
     <div class="page-header">
       <div><h1 class="page-title">AI Product Examiner</h1><p class="page-sub">GPT-4 powered pitch analysis &amp; feedback</p></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;" class="ai-examiner-layout">
       <div class="ai-chat-box">
         <div class="ai-chat-header">
           <div class="ai-badge"><div class="ai-dot"></div> AI Product Examiner</div>
           <span style="font-size:12px;color:var(--text-muted);">GPT-4 Powered · Instant Analysis</span>
         </div>
         <div class="ai-messages" id="ai-messages-area">${_renderAIExaminerMsgs()}</div>
-        <div class="ai-input-row">
-          <input class="form-input" id="ai-examiner-input" placeholder="Describe your product, pitch, or ask for feedback…" onkeydown="if(event.key==='Enter')sendAIExaminerMsg()" style="flex:1;margin-bottom:0;" />
-          <button type="button" class="btn-primary" style="padding:9px 16px;white-space:nowrap;" onclick="sendAIExaminerMsg()">▶ Send</button>
+      <div class="ai-input-row">
+          <textarea class="form-input" id="ai-examiner-input" placeholder="Describe your product, pitch, or ask for feedback…" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIExaminerMsg();}" style="flex:1;margin-bottom:0;resize:none;line-height:1.5;"></textarea>
+          <button type="button" class="btn-primary" style="padding:9px 16px;white-space:nowrap;align-self:flex-end;" onclick="sendAIExaminerMsg()">▶ Send</button>
         </div>
       </div>
       <div>
@@ -746,13 +858,467 @@ window.sendAIExaminerMsg = async function() {
   area.innerHTML = _renderAIExaminerMsgs();
   area.scrollTop = area.scrollHeight;
 };
+// ─── REPORTS ─────────────────────────────────────────
+const REPORT_DATA = {
+  userGrowth:    [12, 19, 28, 35, 42, 58, 74, 89, 103, 118, 134, 151],
+  startupReg:    [3, 5, 4, 8, 6, 11, 9, 14, 12, 17, 15, 20],
+  investments:   [0, 2, 1, 4, 3, 7, 6, 9, 8, 12, 10, 14],
+  hackathons:    [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+  months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+};
+
+let activeReportTab = 'overview';
+
+window.renderReports = function() {
+  const main = document.getElementById('page-content');
+  if (!main) return;
+  const isSuperadmin = APP.role === 'superadmin';
+
+  main.innerHTML = `
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1 class="page-title">📊 Reports</h1>
+        <p class="page-sub">Platform analytics, activity summaries and exportable reports</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <select class="form-input" id="report-period" onchange="renderReports()" style="width:auto;padding:8px 14px;font-size:13px;">
+          <option value="year">This Year</option>
+          <option value="quarter">This Quarter</option>
+          <option value="month">This Month</option>
+        </select>
+        <button type="button" class="btn-primary" style="padding:9px 18px;" onclick="exportReport('csv')">⬇ Export CSV</button>
+        <button type="button" class="btn-ghost" style="padding:9px 18px;" onclick="exportReport('print')">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="hack-tab-bar" style="margin-bottom:24px;">
+      <button type="button" class="hack-tab ${activeReportTab==='overview'?'active':''}" onclick="switchReportTab('overview')">📋 Overview</button>
+      <button type="button" class="hack-tab ${activeReportTab==='users'?'active':''}" onclick="switchReportTab('users')">👥 Users</button>
+      <button type="button" class="hack-tab ${activeReportTab==='startups'?'active':''}" onclick="switchReportTab('startups')">🚀 Startups</button>
+      <button type="button" class="hack-tab ${activeReportTab==='hackathons'?'active':''}" onclick="switchReportTab('hackathons')">🏆 Hackathons</button>
+      ${isSuperadmin ? `<button type="button" class="hack-tab ${activeReportTab==='financial'?'active':''}" onclick="switchReportTab('financial')">💰 Financial</button>` : ''}
+    </div>
+
+    <div id="report-tab-content">${_renderReportTab(activeReportTab, isSuperadmin)}</div>`;
+
+  // Draw charts after render
+  setTimeout(() => _drawReportCharts(activeReportTab), 50);
+};
+
+window.switchReportTab = function(tab) {
+  activeReportTab = tab;
+  renderReports();
+};
+
+function _renderReportTab(tab, isSuperadmin) {
+  if (tab === 'overview') return `
+    <!-- KPI Summary cards -->
+    <div class="stats-row" style="margin-bottom:24px;">
+      ${[
+        { label:'Total Users',       value:'151',   delta:'+13%', icon:'👥', color:'#3B82F6' },
+        { label:'Active Startups',   value:'38',    delta:'+8%',  icon:'🚀', color:'#10b981' },
+        { label:'Investments Made',  value:'14',    delta:'+17%', icon:'💰', color:'#f59e0b' },
+        { label:'Hackathons Run',    value:'5',     delta:'+25%', icon:'🏆', color:'#8B5CF6' },
+      ].map(k => `
+        <div class="kpi-card" style="border-top:3px solid ${k.color};">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="kpi-label">${k.label}</div>
+              <div class="kpi-value">${k.value}</div>
+            </div>
+            <div style="font-size:28px;">${k.icon}</div>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:#10b981;font-weight:600;">${k.delta} vs last period</div>
+        </div>`).join('')}
+    </div>
+    <!-- Charts row -->
+    <div class="charts-grid" style="margin-bottom:24px;">
+      <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📈 User Growth (Monthly)</div><canvas id="rpt-user-chart" height="200"></canvas></div>
+      <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">🚀 Startup Registrations</div><canvas id="rpt-startup-chart" height="200"></canvas></div>
+    </div>
+    <!-- Activity table -->
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📋 Recent Activity Summary</div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Period</th><th>New Users</th><th>Startups</th><th>Investments</th><th>Hackathons</th><th>Status</th></tr></thead>
+          <tbody>
+            ${REPORT_DATA.months.slice(6).map((m,i) => `
+            <tr>
+              <td><strong>${m} 2025</strong></td>
+              <td>${REPORT_DATA.userGrowth[i+6] - REPORT_DATA.userGrowth[i+5]}</td>
+              <td>${REPORT_DATA.startupReg[i+6]}</td>
+              <td>${REPORT_DATA.investments[i+6]}</td>
+              <td>${REPORT_DATA.hackathons[i+6] - REPORT_DATA.hackathons[i+5]}</td>
+              <td><span class="badge badge-green badge-xs">✓ Normal</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  if (tab === 'users') return `
+    <div class="stats-row" style="margin-bottom:24px;">
+      ${[
+        { label:'Total Registered', value:'151', icon:'👥', color:'#3B82F6' },
+        { label:'Investors',        value:'62',  icon:'💼', color:'#10b981' },
+        { label:'Startups',         value:'38',  icon:'🚀', color:'#f59e0b' },
+        { label:'Organizers & IT',  value:'11',  icon:'🏛️', color:'#8B5CF6' },
+      ].map(k => `<div class="kpi-card" style="border-top:3px solid ${k.color};"><div style="display:flex;justify-content:space-between;"><div><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div><span style="font-size:26px;">${k.icon}</span></div></div>`).join('')}
+    </div>
+    <div class="charts-grid" style="margin-bottom:24px;">
+      <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">👥 User Growth Trend</div><canvas id="rpt-user-chart" height="220"></canvas></div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;align-self:flex-start;">🥧 Role Distribution</div>
+        <canvas id="rpt-role-chart" height="200" style="max-width:240px;"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📋 User Report by Role</div>
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Role</th><th>Count</th><th>% of Total</th><th>Active (30d)</th><th>Growth</th></tr></thead>
+        <tbody>
+          <tr><td>💼 Investor</td><td>62</td><td>41%</td><td>48</td><td><span style="color:#10b981;">+12%</span></td></tr>
+          <tr><td>🚀 Startup</td><td>38</td><td>25%</td><td>31</td><td><span style="color:#10b981;">+8%</span></td></tr>
+          <tr><td>🏛️ Organizer</td><td>7</td><td>5%</td><td>6</td><td><span style="color:#10b981;">+40%</span></td></tr>
+          <tr><td>💻 IT Company</td><td>4</td><td>3%</td><td>4</td><td><span style="color:#10b981;">+33%</span></td></tr>
+          <tr><td>⚙️ Compliance Officer</td><td>3</td><td>2%</td><td>3</td><td>—</td></tr>
+          <tr><td>Others / Pending</td><td>37</td><td>24%</td><td>12</td><td><span style="color:#ef4444;">-3%</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+
+  if (tab === 'startups') return `
+    <div class="stats-row" style="margin-bottom:24px;">
+      ${[
+        { label:'Total Submitted', value:'52',  icon:'📝', color:'#3B82F6' },
+        { label:'Approved',        value:'38',  icon:'✅', color:'#10b981' },
+        { label:'Pending Review',  value:'9',   icon:'⏳', color:'#f59e0b' },
+        { label:'Rejected',        value:'5',   icon:'❌', color:'#ef4444' },
+      ].map(k => `<div class="kpi-card" style="border-top:3px solid ${k.color};"><div style="display:flex;justify-content:space-between;"><div><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div><span style="font-size:26px;">${k.icon}</span></div></div>`).join('')}
+    </div>
+    <div class="charts-grid" style="margin-bottom:24px;">
+      <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">🚀 Monthly Registrations</div><canvas id="rpt-startup-chart" height="220"></canvas></div>
+      <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">🏭 Industry Breakdown</div><canvas id="rpt-industry-chart" height="220"></canvas></div>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📋 Startup Registry Report</div>
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Industry</th><th>Count</th><th>Avg Score</th><th>Total Raised</th><th>Stage</th></tr></thead>
+        <tbody>
+          <tr><td>🤖 AI / ML</td><td>12</td><td>78/100</td><td>$2.4M</td><td>Seed–Series A</td></tr>
+          <tr><td>💳 FinTech</td><td>9</td><td>72/100</td><td>$3.1M</td><td>Pre-Seed–Seed</td></tr>
+          <tr><td>🏥 HealthTech</td><td>7</td><td>69/100</td><td>$1.2M</td><td>Pre-Seed</td></tr>
+          <tr><td>🌱 GreenTech</td><td>5</td><td>65/100</td><td>$0.8M</td><td>Pre-Seed</td></tr>
+          <tr><td>📚 EdTech</td><td>5</td><td>61/100</td><td>$0.5M</td><td>Pre-Seed</td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+
+  if (tab === 'hackathons') return `
+    <div class="stats-row" style="margin-bottom:24px;">
+      ${[
+        { label:'Events Held',      value:'5',    icon:'🏆', color:'#f59e0b' },
+        { label:'Total Teams',      value:'87',   icon:'👥', color:'#3B82F6' },
+        { label:'Participants',     value:'342',  icon:'🧑‍💻', color:'#10b981' },
+        { label:'Projects Built',   value:'81',   icon:'🚀', color:'#8B5CF6' },
+      ].map(k => `<div class="kpi-card" style="border-top:3px solid ${k.color};"><div style="display:flex;justify-content:space-between;"><div><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div><span style="font-size:26px;">${k.icon}</span></div></div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">🏆 Hackathon History</div>
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Event</th><th>Date</th><th>Teams</th><th>Participants</th><th>Winner</th><th>Prize</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>AI Innovation Challenge</td><td>Mar 15, 2025</td><td>24</td><td>96</td><td>Team NeuralEdge</td><td>$5,000</td><td><span class="badge badge-green badge-xs">✓ Done</span></td></tr>
+          <tr><td>FinTech Disruption</td><td>May 22, 2025</td><td>18</td><td>72</td><td>Team PayFlow</td><td>$3,000</td><td><span class="badge badge-green badge-xs">✓ Done</span></td></tr>
+          <tr><td>GreenTech Sprint</td><td>Jul 10, 2025</td><td>15</td><td>60</td><td>Team EcoSync</td><td>$2,500</td><td><span class="badge badge-green badge-xs">✓ Done</span></td></tr>
+          <tr><td>HealthTech Marathon</td><td>Sep 5, 2025</td><td>20</td><td>80</td><td>Team MedAI</td><td>$4,000</td><td><span class="badge badge-green badge-xs">✓ Done</span></td></tr>
+          <tr><td>SES Grand Hackathon</td><td>Dec 20, 2025</td><td>—</td><td>—</td><td>—</td><td>$10,000</td><td><span class="badge badge-xs" style="background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">⏳ Upcoming</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+
+  if (tab === 'financial') return `
+    <div class="stats-row" style="margin-bottom:24px;">
+      ${[
+        { label:'Total Invested',    value:'$8.2M',  icon:'💰', color:'#10b981' },
+        { label:'Avg Deal Size',     value:'$586K',  icon:'📊', color:'#3B82F6' },
+        { label:'Active Investors',  value:'48',     icon:'💼', color:'#f59e0b' },
+        { label:'Funded Startups',   value:'14',     icon:'🚀', color:'#8B5CF6' },
+      ].map(k => `<div class="kpi-card" style="border-top:3px solid ${k.color};"><div style="display:flex;justify-content:space-between;"><div><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div></div><span style="font-size:26px;">${k.icon}</span></div></div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:24px;">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📈 Investment Activity</div>
+      <canvas id="rpt-invest-chart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">💰 Investment Report by Industry</div>
+      <div class="table-wrap"><table class="data-table">
+        <thead><tr><th>Industry</th><th>Deals</th><th>Total Raised</th><th>Avg Deal</th><th>Lead Investor</th></tr></thead>
+        <tbody>
+          <tr><td>🤖 AI / ML</td><td>5</td><td>$3.1M</td><td>$620K</td><td>TechVentures MENA</td></tr>
+          <tr><td>💳 FinTech</td><td>4</td><td>$2.8M</td><td>$700K</td><td>Gulf Capital</td></tr>
+          <tr><td>🏥 HealthTech</td><td>3</td><td>$1.5M</td><td>$500K</td><td>HealthBridge Fund</td></tr>
+          <tr><td>🌱 GreenTech</td><td>2</td><td>$0.8M</td><td>$400K</td><td>Green Horizon</td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+
+  return '';
+}
+
+function _drawReportCharts(tab) {
+  const months = REPORT_DATA.months;
+  const chartDefaults = { responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ grid:{ color:'rgba(0,0,0,0.05)' } } } };
+
+  if (tab === 'overview' || tab === 'users') {
+    const uc = document.getElementById('rpt-user-chart');
+    if (uc) new Chart(uc, { type:'line', data:{ labels:months, datasets:[{ data:REPORT_DATA.userGrowth, borderColor:'#3B82F6', backgroundColor:'rgba(59,130,246,0.08)', fill:true, tension:0.4, pointRadius:3 }] }, options:chartDefaults });
+  }
+  if (tab === 'users') {
+    const rc = document.getElementById('rpt-role-chart');
+    if (rc) new Chart(rc, { type:'doughnut', data:{ labels:['Investor','Startup','Organizer','IT Co','Officer','Other'], datasets:[{ data:[62,38,7,4,3,37], backgroundColor:['#3B82F6','#10b981','#f59e0b','#8B5CF6','#06B6D4','#94a3b8'] }] }, options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } }, cutout:'60%' } });
+  }
+  if (tab === 'overview' || tab === 'startups') {
+    const sc = document.getElementById('rpt-startup-chart');
+    if (sc) new Chart(sc, { type:'bar', data:{ labels:months, datasets:[{ data:REPORT_DATA.startupReg, backgroundColor:'rgba(16,185,129,0.7)', borderRadius:6 }] }, options:chartDefaults });
+  }
+  if (tab === 'startups') {
+    const ic = document.getElementById('rpt-industry-chart');
+    if (ic) new Chart(ic, { type:'bar', data:{ labels:['AI/ML','FinTech','HealthTech','GreenTech','EdTech'], datasets:[{ data:[12,9,7,5,5], backgroundColor:['#3B82F6','#10b981','#f59e0b','#8B5CF6','#06B6D4'], borderRadius:6 }] }, options:{ ...chartDefaults, indexAxis:'y' } });
+  }
+  if (tab === 'financial') {
+    const inv = document.getElementById('rpt-invest-chart');
+    if (inv) new Chart(inv, { type:'line', data:{ labels:months, datasets:[{ data:REPORT_DATA.investments.map(v=>v*586), label:'Investment ($)', borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', fill:true, tension:0.4, pointRadius:3 }] }, options:{ ...chartDefaults, plugins:{ legend:{ display:true } } } });
+  }
+}
+
+window.exportReport = function(type) {
+  if (type === 'print') { window.print(); return; }
+  // CSV export
+  const rows = [
+    ['Month','New Users','Startup Registrations','Investments','Hackathons'],
+    ...REPORT_DATA.months.map((m,i) => [
+      m,
+      i === 0 ? REPORT_DATA.userGrowth[0] : REPORT_DATA.userGrowth[i] - REPORT_DATA.userGrowth[i-1],
+      REPORT_DATA.startupReg[i],
+      REPORT_DATA.investments[i],
+      i === 0 ? REPORT_DATA.hackathons[0] : REPORT_DATA.hackathons[i] - REPORT_DATA.hackathons[i-1],
+    ])
+  ];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `SES_Report_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToastMsg('✅ CSV exported!');
+};
+
+// ─── AI HUB ─────────────────────────────────────────
+window.renderAIHub = function() {
+  const main = document.getElementById('page-content');
+  if (!main) return;
+
+  const features = [
+    {
+      icon: '🤖', title: 'AI Product Examiner', badge: 'GPT-4 Powered',
+      desc: 'Get instant AI feedback on your startup pitch, market fit, and investment readiness. Analyze risks, opportunities and competitive positioning.',
+      action: "navigateTo('ai-examiner')", btn: 'Open AI Examiner', color: '#00c2a8'
+    },
+    {
+      icon: '✨', title: 'AI Ecosystem Advisor', badge: 'Live Chat',
+      desc: 'Chat with an AI advisor anytime. Ask about startups, investment strategies, market trends, or get help finding the right match.',
+      action: "document.getElementById('chat-toggle-btn').click()", btn: 'Open AI Chat', color: '#3B82F6'
+    },
+    {
+      icon: '📊', title: 'AI Startup Analyser', badge: 'Auto Analysis',
+      desc: 'Click any startup in the Discovery Feed and run an instant AI-generated investment report with risk score, opportunity rating and recommendation.',
+      action: "navigateTo('discovery')", btn: 'Browse Startups', color: '#8B5CF6'
+    },
+    {
+      icon: '🏆', title: 'AI Team Matcher', badge: 'Hackathon AI',
+      desc: 'AI-powered team recommendations for hackathons. Describe your skills and goals — get matched with the perfect teammates.',
+      action: "hackAIMatch()", btn: 'Find My Team', color: '#f59e0b'
+    },
+    {
+      icon: '📝', title: 'AI Pitch Generator', badge: 'One-Click',
+      desc: 'Generate a polished investor pitch for your startup in seconds. Just describe your idea and let AI craft a compelling narrative.',
+      action: "openAIPitchGen()", btn: 'Generate Pitch', color: '#ef4444'
+    },
+    {
+      icon: '🔍', title: 'AI Risk Scorer', badge: 'Smart Assessment',
+      desc: 'Deep-dive risk analysis for any startup: regulatory, market, technical and team risks — each scored and explained with mitigation strategies.',
+      action: "navigateTo('ai-examiner');setTimeout(()=>quickExaminerPrompt('Give me a full risk assessment with scores for each risk category'),200)", btn: 'Run Risk Scan', color: '#10b981'
+    },
+  ];
+
+  main.innerHTML = `
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">✨ AI Features</h1>
+        <p class="page-sub">All AI-powered tools in one place — powered by GPT-4</p>
+      </div>
+      <span style="background:linear-gradient(135deg,#3B82F6,#8B5CF6);color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;letter-spacing:0.06em;">🤖 6 AI Tools Active</span>
+    </div>
+
+    <!-- Feature grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:32px;">
+      ${features.map(f => `
+        <div class="card ai-hub-card" style="border-top:3px solid ${f.color};position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:${f.color};opacity:0.06;border-radius:0 0 0 80px;"></div>
+          <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;">
+            <div style="font-size:28px;line-height:1;">${f.icon}</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">${f.title}</div>
+                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${f.color}22;color:${f.color};letter-spacing:0.05em;">${f.badge}</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">${f.desc}</p>
+          <button type="button" onclick="${f.action}" style="padding:9px 18px;background:${f.color};border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">${f.btn} →</button>
+        </div>`).join('')}
+    </div>
+
+    <!-- Live AI Quick Chat -->
+    <div class="card" style="border-top:3px solid #3B82F6;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;background:#10b981;border-radius:50%;animation:pulse 2s ease infinite;"></div>
+        <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">Live AI Quick Ask</span>
+        <span style="font-size:11px;color:var(--text-muted);">Powered by GPT-4 · Ask anything about startups, investing, or hackathons</span>
+      </div>
+      <div id="ai-hub-msgs" style="min-height:80px;max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <div style="align-self:flex-start;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text-secondary);max-width:85%;line-height:1.5;">👋 Hi! Ask me anything — startup tips, investment advice, hackathon strategy, or market insights.</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <input class="form-input" id="ai-hub-input" placeholder="e.g. What makes a great hackathon team?" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter')sendAIHubMsg()" />
+        <button type="button" class="btn-primary" style="padding:9px 18px;white-space:nowrap;" onclick="sendAIHubMsg()">Ask AI ▶</button>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+        ${['Best hackathon team structure?','How to pitch to investors?','Top AI startup trends 2025','How to validate product-market fit?'].map(q =>
+          `<button type="button" onclick="document.getElementById('ai-hub-input').value='${q}';sendAIHubMsg()" style="font-size:12px;padding:5px 12px;border-radius:16px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-secondary);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='#3B82F6';this.style.color='#3B82F6'" onmouseout="this.style.borderColor='';this.style.color=''">${q}</button>`
+        ).join('')}
+      </div>
+    </div>`;
+};
+
+window.sendAIHubMsg = async function() {
+  const input = document.getElementById('ai-hub-input');
+  const msgs  = document.getElementById('ai-hub-msgs');
+  const text  = input?.value.trim();
+  if (!text || !msgs) return;
+  input.value = '';
+
+  const userDiv = document.createElement('div');
+  userDiv.style.cssText = 'align-self:flex-end;background:var(--accent);color:#fff;border-radius:10px;padding:10px 14px;font-size:13px;max-width:80%;line-height:1.5;';
+  userDiv.textContent = text;
+  msgs.appendChild(userDiv);
+
+  const thinkDiv = document.createElement('div');
+  thinkDiv.style.cssText = 'align-self:flex-start;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text-muted);';
+  thinkDiv.textContent = '🤖 Thinking…';
+  msgs.appendChild(thinkDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: text }) });
+    const data = await res.json();
+    thinkDiv.style.color = 'var(--text-secondary)';
+    thinkDiv.textContent = data.reply || 'No response.';
+  } catch {
+    thinkDiv.textContent = '⚠️ AI service unavailable. Try again shortly.';
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+};
+
+window.hackAIMatch = async function() {
+  navigateTo('hackathon');
+  setTimeout(() => {
+    hackSwitchTab('teams');
+    const input = prompt('Describe your skills (e.g. "React, AI, backend") — AI will find your best team match:');
+    if (!input) return;
+    showToastMsg('🤖 AI matching you with teams…');
+    setTimeout(async () => {
+      try {
+        const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `I have these skills: ${input}. From these hackathon teams suggest which one I should join and why: ${JSON.stringify(HACK_TEAMS.map(t=>({name:t.name,roles:t.roles,tagline:t.tagline})))}` }) });
+        const data = await res.json();
+        showToastMsg('✅ AI match ready!');
+        alert('🤖 AI Team Match Result:\n\n' + data.reply);
+      } catch { showToastMsg('⚠️ AI unavailable'); }
+    }, 400);
+  }, 300);
+};
+
+window.openAIPitchGen = async function() {
+  const idea = prompt('Describe your startup idea in 1-2 sentences:');
+  if (!idea) return;
+  showToastMsg('✨ Generating your pitch…');
+  try {
+    const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate a compelling 3-paragraph investor pitch for this startup idea: "${idea}". Include problem, solution, market opportunity, and call to action.` }) });
+    const data = await res.json();
+    navigateTo('ai-examiner');
+    setTimeout(() => {
+      if (data.reply) {
+        aiExaminerMessages.push({ from: 'assistant', text: '📝 **Generated Pitch:**\n\n' + data.reply });
+        const area = document.getElementById('ai-messages-area');
+        if (area) { area.innerHTML = _renderAIExaminerMsgs(); area.scrollTop = area.scrollHeight; }
+      }
+    }, 300);
+  } catch { showToastMsg('⚠️ AI unavailable'); }
+};
+
+// ─── CREATE HACKATHON MODAL ──────────────────────────
+window.openCreateHackathonModal = function() {
+  document.getElementById('create-hackathon-modal')?.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+window.closeCreateHackathonModal = function() {
+  document.getElementById('create-hackathon-modal')?.classList.add('hidden');
+  document.body.style.overflow = '';
+};
+window.submitCreateHackathon = async function() {
+  const name      = document.getElementById('ch-name').value.trim();
+  const date      = document.getElementById('ch-date').value;
+  const location  = document.getElementById('ch-location').value.trim();
+  const prize     = document.getElementById('ch-prize').value.trim();
+  const maxTeams  = document.getElementById('ch-max-teams').value;
+  const desc      = document.getElementById('ch-desc').value.trim();
+  if (!name || !date || !location) { showToastMsg('⚠️ Name, date and location are required'); return; }
+  const btn = document.getElementById('ch-submit-btn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const res = await fetch(`${API_URL}/hackathons`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${APP.token}` },
+      body: JSON.stringify({ name, date, location, prize, maxTeams: Number(maxTeams) || 50, description: desc })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToastMsg('✅ Hackathon created!');
+      closeCreateHackathonModal();
+      // Add to local list and re-render
+      HACKATHON_EVENTS.unshift({ id: Date.now(), name, icon: '🏆', date: new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), location, prize: prize || 'TBA', maxTeams: Number(maxTeams)||50, registered: 0, status: 'upcoming', desc });
+      renderHackathon();
+    } else {
+      showToastMsg('❌ ' + (data.message || 'Failed to create hackathon'));
+    }
+  } catch {
+    // Offline fallback — add locally
+    HACKATHON_EVENTS.unshift({ id: Date.now(), name, icon: '🏆', date: new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), location, prize: prize || 'TBA', maxTeams: Number(maxTeams)||50, registered: 0, status: 'upcoming', desc });
+    showToastMsg('✅ Hackathon created (local)!');
+    closeCreateHackathonModal();
+    renderHackathon();
+  }
+  btn.disabled = false; btn.textContent = '🏆 Create Hackathon';
+};
+
 // ─── SOCKET.IO CHAT ────────────────────────────────
 let socket = null;
 
 function initSocket() {
   if (socket || !APP.userData?.id) return;
   try {
-    socket = io('http://localhost:5000');
+    socket = io(`http://${_HOST}:5000`);
     socket.emit('join_room', APP.userData.id);
     socket.on('receive_message', (msg) => {
       appendChatMessage('other', msg.content);
@@ -896,6 +1462,8 @@ function onPageLoad(pageId) {
   if (pageId === 'hackathon')     { renderHackathon(); }
   if (pageId === 'investor-dash') { renderInvestorDash(); }
   if (pageId === 'ai-examiner')   { renderAIExaminer(); }
+  if (pageId === 'ai-hub')        { renderAIHub(); }
+  if (pageId === 'reports')       { renderReports(); }
 }
 
 function statCard(label, value, badge) {
@@ -1313,10 +1881,14 @@ function _renderHackTeams() {
 window.renderHackathon = function() {
   const main = document.getElementById('page-content');
   if (!main) return;
+  const canCreate = ['organizer','itcompany','admin','superadmin'].includes(APP.role);
   main.innerHTML = `
     <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
       <div><h1 class="page-title">🏆 Hackathon Hub</h1><p class="page-sub">Discover events, form teams, and build something great</p></div>
-      <button type="button" class="btn-primary" style="padding:9px 20px;" onclick="openCreateTeamModal()">＋ Create Team</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${canCreate ? `<button type="button" class="btn-primary" style="padding:9px 20px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="openCreateHackathonModal()">＋ Create Hackathon</button>` : ''}
+        <button type="button" class="btn-primary" style="padding:9px 20px;" onclick="openCreateTeamModal()">＋ Create Team</button>
+      </div>
     </div>
     <div class="hack-tab-bar">
       <button type="button" class="hack-tab ${hackActiveTab==='events'?'active':''}" onclick="hackSwitchTab('events')">🗓 Upcoming Events <span class="hack-tab-count">${HACKATHON_EVENTS.length}</span></button>

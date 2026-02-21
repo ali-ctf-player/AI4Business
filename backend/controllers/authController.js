@@ -6,18 +6,28 @@ exports.register = async (req, res) => {
   try {
     const { email, password, role, fullName } = req.body;
 
+    if (!email || !password || !fullName) {
+      return res.status(400).json({ message: "Email, password and full name are required" });
+    }
+
+    const allowedRoles = ['startup', 'investor', 'organizer', 'itcompany', 'it_company', 'incubator'];
+    if (role && !allowedRoles.includes(role)) {
+      return res.status(400).json({ message: `Invalid role: ${role}` });
+    }
+
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "User already exists" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    user = new User({ email, passwordHash: hashedPassword, role, fullName });
+    user = new User({ email, passwordHash: hashedPassword, role: role || 'startup', fullName });
     await user.save();
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Server error during registration" });
+    console.error('Register error:', error.message);
+    res.status(500).json({ error: error.message || "Server error during registration" });
   }
 };
 

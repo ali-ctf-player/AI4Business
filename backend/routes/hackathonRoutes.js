@@ -13,10 +13,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Yeni Hackathon yarat (Yalnız Adminlər üçün)
-router.post('/', protect, authorize('admin'), async (req, res) => {
+// Yeni Hackathon yarat (Admin, Organizer, IT Company)
+router.post('/', protect, authorize('admin', 'organizer', 'itcompany'), async (req, res) => {
   try {
-    const newHackathon = new Hackathon(req.body);
+    const newHackathon = new Hackathon({ ...req.body, createdBy: req.user.id });
     const saved = await newHackathon.save();
     res.status(201).json(saved);
   } catch (err) {
