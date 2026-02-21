@@ -178,22 +178,6 @@ Callback URL: `http://localhost:5000/api/auth/google/callback`
 
 ---
 
-## 📊 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register user |
-| POST | `/api/auth/login` | Login (JWT) |
-| GET | `/api/auth/github` | GitHub OAuth |
-| GET | `/api/auth/google` | Google OAuth |
-| GET | `/api/startups` | List startups |
-| POST | `/api/startups` | Create startup |
-| POST | `/api/ai/analyze` | AI analysis |
-| GET | `/api/hackathons` | List hackathons |
-| GET | `/api/messages` | Get messages |
-
----
-
 ## 🏗️ Built At Hackathon
 
 This project was built as part of a hackathon to demonstrate a modern startup ecosystem platform with AI-powered features and real-time collaboration.
