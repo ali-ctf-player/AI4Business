@@ -2001,3 +2001,47 @@ body[data-theme="dark"] .hack-member-chip { background: rgba(255,255,255,0.05); 
 /* Dark theme adjustments */
 body[data-theme="dark"] .social-google { background: #1C2128; border-color: rgba(255,255,255,0.09); }
 body[data-theme="dark"] .social-google:hover { border-color: #4285F4; }
+
+/* Hackathon Login Button */
+.btn-hackathon-login {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(245,158,11,0.35);
+}
+.btn-hackathon-login:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245,158,11,0.45);
+}
+
+/* Hackathon Register Button */
+.btn-hackathon-register {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 20px;
+  background: transparent;
+  color: #f59e0b;
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.btn-hackathon-register:hover {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+}

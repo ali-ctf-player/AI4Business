@@ -124,6 +124,19 @@ window.submitGovLogin = function() {
   }, 1500);
 };
 
+window.switchToHackathonRegister = function() {
+  // Switch to Register tab
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="register"]')?.classList.add('active');
+  authMode = 'register';
+  document.getElementById('role-selector')?.classList.remove('hidden');
+  document.getElementById('name-field')?.classList.remove('hidden');
+  document.getElementById('email-login-fields')?.classList.remove('hidden');
+  document.getElementById('btn-show-email').textContent = '✉️ Hide Email Form';
+  // Scroll auth card into view
+  document.querySelector('.auth-card')?.scrollIntoView({ behavior: 'smooth' });
+};
+
 window.toggleEmailFields = function() {
   const fields = document.getElementById('email-login-fields');
   const btn = document.getElementById('btn-show-email');
@@ -150,9 +163,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
       nameField?.classList.remove('hidden');
       // Auto-show email fields on register
       document.getElementById('email-login-fields')?.classList.remove('hidden');
+      document.getElementById('btn-show-email').textContent = '✉️ Hide Email Form';
+      const cont = document.getElementById('btn-continue');
+      if (cont) cont.textContent = 'Continue →';
     } else {
       roleSelector?.classList.add('hidden');
       nameField?.classList.add('hidden');
+      document.getElementById('hackathon-reg-fields')?.classList.add('hidden');
+      document.getElementById('email-login-fields')?.classList.add('hidden');
+      document.getElementById('btn-show-email').textContent = '✉️ Sign in with Email';
+      const cont = document.getElementById('btn-continue');
+      if (cont) cont.textContent = 'Continue →';
     }
   });
 });

@@ -39,9 +39,6 @@
       <span class="logo-text">S<span class="logo-accent">ES</span></span>
     </div>
 
-    <div style="display:flex;justify-content:center;margin-bottom:10px;">
-      <span style="background:linear-gradient(135deg,#3B82F6,#06B6D4);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;padding:4px 14px;border-radius:20px;text-transform:uppercase;">🏆 For Hackathon</span>
-    </div>
     <h1 class="auth-heading">Startup Ecosystem<br/>Support</h1>
     <p class="auth-sub">Connecting startups, investors, and institutions with AI-powered intelligence.</p>
 
@@ -136,6 +133,8 @@
           <button type="button" class="demo-btn" onclick="loginAs('admin')">⚙️ Compliance Officer</button>
           <button type="button" class="demo-btn" onclick="loginAs('superadmin')">👑 Ecosystem Manager</button>
         </div>
+        <button type="button" class="btn-hackathon-login" onclick="loginAs('startup');setTimeout(()=>navigateTo('hackathon'),50)">🏆 Login for Hackathon</button>
+        <button type="button" class="btn-hackathon-register" onclick="switchToHackathonRegister()">📝 Register for Hackathon</button>
       </div>
     </div>
 
