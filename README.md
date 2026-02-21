@@ -178,6 +178,88 @@ Callback URL: `http://localhost:5000/api/auth/google/callback`
 
 ---
 
+## ❓ FAQ
+
+<details>
+<summary><strong>Q: The backend won't start — "Cannot connect to MongoDB"</strong></summary>
+
+Make sure your `backend/.env` has a valid `MONGO_URI`. If you're using MongoDB Atlas, whitelist your IP in **Network Access → Add IP Address → Allow Access from Anywhere** (`0.0.0.0/0`).
+
+</details>
+
+<details>
+<summary><strong>Q: AI Examiner returns "OpenAI key not configured"</strong></summary>
+
+Add your key to `backend/.env`:
+```env
+OPENAI_API_KEY=sk-...
+```
+Then restart the backend (`node server.js`). Without a key the platform runs in **demo mode** — all other features still work.
+
+</details>
+
+<details>
+<summary><strong>Q: GitHub / Google login doesn't work</strong></summary>
+
+Social login requires real OAuth credentials. See the [OAuth Setup](#-oauth-setup-optional) section above. For a quick demo, use the **Quick Demo Access** buttons instead — no credentials needed.
+
+</details>
+
+<details>
+<summary><strong>Q: How do I access the platform from my phone?</strong></summary>
+
+1. Make sure your phone and computer are on the **same Wi-Fi network**.
+2. Find your computer's local IP (run `ip addr` on Linux or `ipconfig` on Windows).
+3. Open `http://<YOUR_IP>:3000` in your phone's browser.
+
+The app auto-detects the hostname, so all API calls will route correctly.
+
+</details>
+
+<details>
+<summary><strong>Q: I can't register as Organizer or IT Company</strong></summary>
+
+These roles are supported. On the Register tab, click the role button (🏛️ Organizer or 💻 IT Company) before submitting. If you get a "Role not allowed" error, restart the backend to pick up the latest `User.js` model changes.
+
+</details>
+
+<details>
+<summary><strong>Q: How do I create a Hackathon?</strong></summary>
+
+Log in as **Organizer**, **IT Company**, **Admin**, or **Ecosystem Manager**. Go to the **Hackathons** page and click the orange **＋ Create Hackathon** button. Fill in the form and submit — the event appears instantly even if the backend is offline (saved locally for the demo).
+
+</details>
+
+<details>
+<summary><strong>Q: Where is the Reports section?</strong></summary>
+
+Reports are available to **Compliance Officer** (admin) and **Ecosystem Manager** (superadmin) accounts only. Log in with one of those roles and click **📊 Reports** in the sidebar. You can export data as CSV or print directly from the browser.
+
+</details>
+
+<details>
+<summary><strong>Q: Can I run this without Node.js / backend?</strong></summary>
+
+The frontend is a plain HTML/CSS/JS SPA. You can open `frontend/index.html` directly in a browser for a limited preview, but features like authentication, AI Examiner, real-time chat, and registry management require the backend to be running.
+
+</details>
+
+<details>
+<summary><strong>Q: How do I reset the database / clear all demo data?</strong></summary>
+
+In MongoDB Atlas, go to your cluster → **Collections** → select `hackathon_db` → drop the collections you want to clear (`users`, `startups`, `hackathons`, `messages`). A fresh registration will recreate them.
+
+</details>
+
+<details>
+<summary><strong>Q: The dark theme doesn't persist after refresh</strong></summary>
+
+The theme is saved to `localStorage`. Make sure your browser isn't blocking localStorage (e.g., private/incognito mode may clear it on close). Toggle with the ☀️/🌙 button in the top bar.
+
+</details>
+
+---
+
 ## 🏗️ Built At Hackathon
 
 This project was built as part of a hackathon to demonstrate a modern startup ecosystem platform with AI-powered features and real-time collaboration.
