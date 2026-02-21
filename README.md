@@ -111,6 +111,7 @@ cd AI4Business
 ```bash
 cd backend
 npm install
+npm install dotenv
 ```
 
 Create `backend/.env`:
