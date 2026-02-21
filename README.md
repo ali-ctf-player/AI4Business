@@ -104,7 +104,7 @@ Hackathon/
 ### 1. Clone the repo
 ```bash
 git clone https://github.com/ali-ctf-player/AI4Business.git
-cd YOUR_REPO
+cd AI4Business
 ```
 
 ### 2. Setup backend
