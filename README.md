@@ -8,7 +8,7 @@ A full-stack web platform built for a hackathon to connect **startups**, **inves
 
 ### 🔐 Authentication
 - Email/password login with JWT
-- Social login: **GitHub**, **Google**, **myGov**, **Aşan İmza**
+- Social login: **GitHub**, **Google**, **myGov**, **Asan İmza**
 - Multi-factor authentication (MFA) flow
 - Role-based access: Investor · Startup · Compliance Officer · Ecosystem Manager
 
