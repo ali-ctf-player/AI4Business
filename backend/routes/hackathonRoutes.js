@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Yeni Hackathon yarat (Admin, Organizer, IT Company)
-router.post('/', protect, authorize('admin', 'organizer', 'itcompany'), async (req, res) => {
+router.post('/', protect, authorize('admin', 'organizer', 'judge'), async (req, res) => {
   try {
     const newHackathon = new Hackathon({ ...req.body, createdBy: req.user.id });
     const saved = await newHackathon.save();

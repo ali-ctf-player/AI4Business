@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   myGovId: { type: String, unique: true, sparse: true },
   role: {
     type: String,
-    enum: ['startup', 'investor', 'organizer', 'itcompany', 'it_company', 'incubator', 'admin', 'superadmin'],
+    enum: ['startup', 'investor', 'organizer', 'mentor', 'judge', 'incubator', 'admin', 'superadmin'],
     required: true
   },
   fullName: { type: String, required: true },

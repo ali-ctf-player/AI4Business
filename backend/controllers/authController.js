@@ -6,28 +6,29 @@ exports.register = async (req, res) => {
   try {
     const { email, password, role, fullName } = req.body;
 
-    if (!email || !password || !fullName) {
-      return res.status(400).json({ message: "Email, password and full name are required" });
+    if (!email || !password || !fullName || !role) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
-    const allowedRoles = ['startup', 'investor', 'organizer', 'itcompany', 'it_company', 'incubator'];
-    if (role && !allowedRoles.includes(role)) {
-      return res.status(400).json({ message: `Invalid role: ${role}` });
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(409).json({ message: "This email is already registered. Please log in." });
     }
 
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "User already exists" });
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    user = new User({ email, passwordHash: hashedPassword, role: role || 'startup', fullName });
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({
+      email: email.toLowerCase(),
+      passwordHash,
+      role,
+      fullName,
+      authProvider: 'local',
+      isVerified: true
+    });
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "Registration successful! You can now log in." });
   } catch (error) {
-    console.error('Register error:', error.message);
-    res.status(500).json({ error: error.message || "Server error during registration" });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -35,17 +36,71 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    const user = await User.findOne({ email: email.toLowerCase(), isDeleted: { $ne: true } });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
 
-    const payload = { id: user._id, role: user.role };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
+    if (!user.passwordHash) {
+      return res.status(401).json({ message: "This account uses social login. Please sign in with GitHub or Google." });
+    }
 
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Your email is not verified. Please check your inbox." });
+    }
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Login failed" });
+  }
+};
+
+exports.quickDemoLogin = async (req, res) => {
+  try {
+    const { roleSlug } = req.body;
+    const allowedDemoRoles = ['startup', 'investor', 'organizer', 'mentor', 'judge', 'compliance', 'manager']; 
+    
+    if (!allowedDemoRoles.includes(roleSlug)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    let user = await User.findOne({ role: roleSlug });
+
+    if (!user) {
+      user = new User({
+        email: `demo-${roleSlug}@nexusio.test`,
+        passwordHash: "demo_hash",
+        role: roleSlug,
+        fullName: `${roleSlug.toUpperCase()} Demo`
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token, user: { id: user._id, role: user.role, fullName: user.fullName } });
   } catch (error) {
-    res.status(500).json({ error: "Server error during login" });
+    res.status(500).json({ error: "Server error" });
   }
 };

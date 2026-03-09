@@ -1,48 +1,164 @@
-const { OpenAI } = require('openai');
+const { GoogleGenAI } = require('@google/genai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize Gemini
+const ai = new GoogleGenAI({});
 
-const FALLBACK_RESPONSES = [
-  "📊 **Analysis Complete**\n\nBased on the current market landscape:\n\n**Strengths:** Strong product-market fit with differentiated technology. The team demonstrates relevant domain expertise.\n\n**Market Opportunity:** The target market is growing at 18% CAGR with limited direct competition in the identified niche.\n\n**Investor Readiness Score: 7.5/10**\n\n**Recommendations:**\n1. Strengthen traction metrics — aim for 3 months of consistent MoM growth\n2. Expand strategic advisory board with industry veterans\n3. Refine unit economics and path to profitability\n4. Build strategic partnerships for distribution\n\n**Risk Level:** Medium — regulatory and market timing risks are manageable with proper planning.",
-
-  "🎯 **Market Fit Assessment**\n\nYour solution addresses a validated pain point with a sizeable addressable market (TAM ~$4.2B).\n\n**Customer Segments:** Enterprise B2B (primary), SME (secondary)\n**Competitive Moat:** Proprietary data, network effects, switching costs\n**Go-to-Market:** Direct sales + partnerships channel recommended\n\n**Verdict:** Strong product-market fit. Focus on enterprise pilots to build social proof before scaling.",
-
-  "⚠️ **Risk Assessment**\n\n**High Risk:** Market timing — competitors may move faster\n**Medium Risk:** Regulatory uncertainty in key markets\n**Low Risk:** Technical execution — team has proven capability\n\n**Mitigation Strategies:**\n- File IP protection early\n- Build regulatory relationships proactively\n- Maintain 18-month runway minimum\n\n**Overall Risk Profile:** Moderate — manageable with disciplined execution.",
-
-  "✨ **Polished Pitch**\n\nWe're building the infrastructure layer that [industry] has been missing. Unlike legacy solutions that [problem], our platform delivers [key benefit] resulting in [measurable outcome] for our customers.\n\nWith $[X]M ARR, [Y]% MoM growth, and pilots with [tier-1 companies], we're raising $[X]M Series [A/B] to accelerate GTM and expand to [markets].\n\nOur unfair advantage: [proprietary technology/data/team] that competitors cannot replicate in less than 2 years.",
-];
-
-exports.askAssistant = async (req, res) => {
+// --- 1. AI Ecosystem Advisor (Live Chat) ---
+exports.askEcosystemAdvisor = async (req, res) => {
   try {
     const { message } = req.body;
+    if (!message) return res.status(400).json({ error: "Message is required" });
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
+    const systemPrompt = `You are an expert AI Ecosystem Advisor for the SES (Startup Ecosystem Support) platform in Azerbaijan. 
+    Your goal is to help users understand startup investment strategies, market trends in the MENA and Caucasus regions, 
+    and how to navigate the SES platform. Keep your answers concise, professional, and helpful.`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { 
-          role: "system", 
-          content: "Sən İRİA Hackathon-u üçün yaradılmış RANDOMWARE komandasının ağıllı İnnovasiya və Ekosistem Asistanısan. Sənin məqsədin istifadəçilərə uyğun investorlar, startaplar və proqramlar tapmaqda kömək etməkdir. Qısa, dəqiq və köməksevər cavablar ver." 
-        },
-        { role: "user", content: message }
-      ]
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: message,
+      config: { systemInstruction: systemPrompt }
     });
 
-    res.json({ reply: completion.choices[0].message.content });
+    res.json({ reply: response.text });
   } catch (error) {
-    console.error('OpenAI Error:', error.status, error.message);
+    console.error('Advisor Error:', error.message);
+    res.status(500).json({ error: "AI Advisor is temporarily unavailable." });
+  }
+};
 
-    // Fallback demo response when quota exceeded or API unavailable
-    if (error.status === 429 || error.status === 401 || error.code === 'ENOTFOUND') {
-      const fallback = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
-      return res.json({ reply: fallback, demo: true });
+// --- 2. AI Product Examiner (GPT-4 Powered Analysis) ---
+exports.examineProduct = async (req, res) => {
+  try {
+    const { pitchText, analysisFocus } = req.body; // focus can be 'full', 'market', 'risk', 'pitch'
+    if (!pitchText) return res.status(400).json({ error: "Pitch text is required" });
+
+    let systemPrompt = "You are a top-tier Venture Capital analyst. Evaluate the provided startup pitch. ";
+    
+    if (analysisFocus === 'market') {
+      systemPrompt += "Focus strictly on Product-Market Fit, Total Addressable Market (TAM), and customer segmentation.";
+    } else if (analysisFocus === 'risk') {
+      systemPrompt += "Focus strictly on identifying regulatory, technical, and execution risks, and provide mitigation strategies.";
+    } else if (analysisFocus === 'pitch') {
+      systemPrompt += "Focus on the storytelling. Rewrite the pitch to be more compelling, concise, and investor-ready.";
+    } else {
+      systemPrompt += "Provide a full analysis: Strengths, Weaknesses, Market Opportunity, and give it an 'Investor Readiness Score' out of 100.";
     }
 
-    res.status(500).json({ error: error.message || "AI Service Error" });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Analyze this pitch:\n\n${pitchText}`,
+      config: { systemInstruction: systemPrompt }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Examiner Error:', error.message);
+    res.status(500).json({ error: "AI Product Examiner is temporarily unavailable." });
+  }
+};
+
+// --- 3. AI Startup Analyser (Auto Analysis for Investors) ---
+exports.analyzeStartup = async (req, res) => {
+  try {
+    const { startupData } = req.body; 
+    // Expecting an object like { name: "FinTechPro", industry: "FinTech", stage: "Seed", ... }
+    
+    const systemPrompt = `You are an automated due-diligence AI for venture capitalists. 
+    Analyze the following startup data profile. 
+    You must output a structured report containing:
+    1. Opportunity Rating (Low, Medium, High)
+    2. Risk Score (1-100)
+    3. A 2-sentence investment recommendation.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Startup Data: ${JSON.stringify(startupData)}`,
+      config: { systemInstruction: systemPrompt }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Analyser Error:', error.message);
+    res.status(500).json({ error: "AI Startup Analyser is temporarily unavailable." });
+  }
+};
+
+// --- 4. AI Team Matcher (Hackathon AI) ---
+exports.matchTeam = async (req, res) => {
+  try {
+    const { userSkills, hackathonTheme, availableTeams } = req.body;
+
+    const systemPrompt = `You are a Hackathon Talent Coordinator. 
+    You are given a user's skills, the theme of the hackathon, and a list of teams looking for members.
+    Analyze the data and recommend the TOP 2 teams the user should join based on skill gaps, 
+    and explain exactly WHY they are a perfect fit.`;
+
+    const promptData = `
+    User Skills: ${userSkills}
+    Hackathon Theme: ${hackathonTheme}
+    Available Teams: ${JSON.stringify(availableTeams)}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: promptData,
+      config: { systemInstruction: systemPrompt }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Matcher Error:', error.message);
+    res.status(500).json({ error: "AI Team Matcher is temporarily unavailable." });
+  }
+};
+
+// --- 5. AI Pitch Generator (One-Click) ---
+exports.generatePitch = async (req, res) => {
+  try {
+    const { ideaDescription } = req.body;
+
+    const systemPrompt = `You are an expert startup founder and storyteller. 
+    Take the following raw idea description and turn it into a polished, professional 1-minute elevator pitch. 
+    Structure it exactly like this:
+    1. The Hook (The problem)
+    2. The Solution (The product)
+    3. The Traction/Market (Why now?)
+    4. The Ask (What do you need from investors?)`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `My raw idea: ${ideaDescription}`,
+      config: { systemInstruction: systemPrompt }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Pitch Generator Error:', error.message);
+    res.status(500).json({ error: "AI Pitch Generator is temporarily unavailable." });
+  }
+};
+
+// --- 6. AI Risk Scorer ---
+exports.scoreRisk = async (req, res) => {
+  try {
+    const { startupData } = req.body;
+    if (!startupData) return res.status(400).json({ error: "Startup data is required" });
+
+    const systemPrompt = `You are a senior risk analyst specializing in early-stage startups.
+    Evaluate the provided startup profile and return a structured risk assessment containing:
+    1. Overall Risk Score (0-100, where 100 is highest risk)
+    2. Risk Category (Low / Medium / High / Critical)
+    3. Top 3 Risk Factors with a one-sentence explanation each
+    4. One actionable mitigation recommendation.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Startup Profile: ${JSON.stringify(startupData)}`,
+      config: { systemInstruction: systemPrompt }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Risk Scorer Error:', error.message);
+    res.status(500).json({ error: "AI Risk Scorer is temporarily unavailable." });
   }
 };

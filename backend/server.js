@@ -67,7 +67,7 @@ app.use('/api/startups',   require('./routes/startupRoutes'));
 app.use('/api/messages',   require('./routes/messageRoutes'));
 app.use('/api/ai',         require('./routes/aiRoutes'));
 app.use('/api/hackathons', require('./routes/hackathonRoutes'));
-
+app.use('/api/it-hubs',    require('./routes/ithubRoutes'));
 // 7. Serveri Başlat
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

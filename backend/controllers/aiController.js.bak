@@ -1,0 +1,42 @@
+const { GoogleGenAI } = require('@google/genai');
+
+// Initialize Gemini (It automatically looks for process.env.GEMINI_API_KEY)
+const ai = new GoogleGenAI({});
+
+const FALLBACK_RESPONSES = [
+  "📊 **Analysis Complete**\n\nBased on the current market landscape:\n\n**Strengths:** Strong product-market fit with differentiated technology. The team demonstrates relevant domain expertise.\n\n**Market Opportunity:** The target market is growing at 18% CAGR with limited direct competition in the identified niche.\n\n**Investor Readiness Score: 7.5/10**\n\n**Recommendations:**\n1. Strengthen traction metrics — aim for 3 months of consistent MoM growth\n2. Expand strategic advisory board with industry veterans\n3. Refine unit economics and path to profitability\n4. Build strategic partnerships for distribution\n\n**Risk Level:** Medium — regulatory and market timing risks are manageable with proper planning.",
+
+  "🎯 **Market Fit Assessment**\n\nYour solution addresses a validated pain point with a sizeable addressable market (TAM ~$4.2B).\n\n**Customer Segments:** Enterprise B2B (primary), SME (secondary)\n**Competitive Moat:** Proprietary data, network effects, switching costs\n**Go-to-Market:** Direct sales + partnerships channel recommended\n\n**Verdict:** Strong product-market fit. Focus on enterprise pilots to build social proof before scaling.",
+
+  "⚠️ **Risk Assessment**\n\n**High Risk:** Market timing — competitors may move faster\n**Medium Risk:** Regulatory uncertainty in key markets\n**Low Risk:** Technical execution — team has proven capability\n\n**Mitigation Strategies:**\n- File IP protection early\n- Build regulatory relationships proactively\n- Maintain 18-month runway minimum\n\n**Overall Risk Profile:** Moderate — manageable with disciplined execution.",
+
+  "✨ **Polished Pitch**\n\nWe're building the infrastructure layer that [industry] has been missing. Unlike legacy solutions that [problem], our platform delivers [key benefit] resulting in [measurable outcome] for our customers.\n\nWith $[X]M ARR, [Y]% MoM growth, and pilots with [tier-1 companies], we're raising $[X]M Series [A/B] to accelerate GTM and expand to [markets].\n\nOur unfair advantage: [proprietary technology/data/team] that competitors cannot replicate in less than 2 years.",
+];
+
+exports.askAssistant = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    // Call the Gemini 2.5 Flash model
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: message,
+      config: {
+        // System instructions replace the old "system" role message in OpenAI
+        systemInstruction: "Sən İRİA Hackathon-u üçün yaradılmış RANDOMWARE komandasının ağıllı İnnovasiya və Ekosistem Asistanısan. Sənin məqsədin istifadəçilərə uyğun investorlar, startaplar və proqramlar tapmaqda kömək etməkdir. Qısa, dəqiq və köməksevər cavablar ver."
+      }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error) {
+    console.error('Gemini API Error:', error.message);
+
+    // Fallback demo response when API is unavailable or quota exceeded
+    const fallback = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+    return res.json({ reply: fallback, demo: true });
+  }
+};
