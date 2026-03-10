@@ -80,7 +80,7 @@ exports.login = async (req, res) => {
 exports.quickDemoLogin = async (req, res) => {
   try {
     const { roleSlug } = req.body;
-    const allowedDemoRoles = ['startup', 'investor', 'organizer', 'mentor', 'judge', 'compliance', 'manager']; 
+    const allowedDemoRoles = ['startup', 'investor', 'organizer', 'mentor', 'judge', 'compliance', 'manager', 'superadmin', 'admin']; 
     
     if (!allowedDemoRoles.includes(roleSlug)) {
       return res.status(400).json({ message: "Invalid role" });
@@ -93,7 +93,8 @@ exports.quickDemoLogin = async (req, res) => {
         email: `demo-${roleSlug}@nexusio.test`,
         passwordHash: "demo_hash",
         role: roleSlug,
-        fullName: `${roleSlug.toUpperCase()} Demo`
+        fullName: `${roleSlug.toUpperCase()} Demo`,
+        isVerified: true
       });
       await user.save();
     }
@@ -102,5 +103,34 @@ exports.quickDemoLogin = async (req, res) => {
     res.json({ token, user: { id: user._id, role: user.role, fullName: user.fullName } });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+// --- NEW: Fetch All Users for the Dashboard ---
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Exclude password hashes from the response for security
+    const users = await User.find({}).select('-passwordHash').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+};
+
+// --- NEW: Toggle Suspend/Active Status ---
+exports.toggleUserStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Toggle the boolean (Assuming you use isDeleted or similar for suspension)
+    user.isDeleted = !user.isDeleted;
+    await user.save();
+    
+    res.json({ message: "User status updated successfully", status: user.isDeleted ? "Suspended" : "Active" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update user status" });
   }
 };

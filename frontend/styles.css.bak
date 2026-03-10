@@ -97,6 +97,8 @@ body {
 .mb-6 { margin-bottom: 24px; }
 .ml-auto { margin-left: auto; }
 .full-span { grid-column: 1 / -1; }
+.w-full { width: 100%; }
+.flex-1 { flex: 1; }
 
 /* ─── SCROLLBAR ──────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -333,7 +335,6 @@ body {
 
 /* ─── BUTTONS ────────────────────────────────────────── */
 .btn-primary {
-  width: 100%;
   padding: 12px 20px;
   background: var(--grad-brand);
   border: none;

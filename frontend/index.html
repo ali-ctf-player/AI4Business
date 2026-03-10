@@ -454,12 +454,12 @@
   <div class="page-header">
     <div class="flex items-center gap-3">
       <div class="ai-icon-big">🤖</div>
-      <div><h1 class="page-title">AI Product Examiner</h1><p class="page-sub">GPT-4 powered pitch analysis & market intelligence</p></div>
+      <div><h1 class="page-title">AI Product Examiner</h1><p class="page-sub">Gemini powered pitch analysis & market intelligence</p></div>
     </div>
   </div>
   <div class="ai-key-banner" id="ai-key-banner">
-    <span>⚡ Enter your OpenAI API Key to activate GPT-4 analysis</span>
-    <input type="password" class="api-key-input" id="openai-key" placeholder="sk-..." />
+    <span>⚡ Enter your Gemini API Key to activate Gemini analysis</span>
+    <input type="password" class="api-key-input" id="openai-key" placeholder="AIza..." />
     <button type="button" class="btn-sm btn-blue" onclick="saveApiKey()">Activate</button>
   </div>
   <div class="ai-grid">
@@ -476,13 +476,13 @@
         </div>
       </div>
       <button type="button" class="btn-primary mt-4" id="btn-analyze" onclick="analyzeWithGPT()">
-        <span id="analyze-btn-text">🔍 Analyze with GPT-4</span>
+        <span id="analyze-btn-text">🔍 Analyze with Gemini</span>
       </button>
     </div>
     <div class="card ai-result-panel" id="ai-result-panel">
       <div class="ai-empty" id="ai-empty">
         <div class="ai-empty-icon">🧠</div>
-        <p>Paste your pitch and GPT-4 will deliver market analysis, strength assessment, investor readiness score, and pitch improvement tips.</p>
+        <p>Paste your pitch and Gemini will deliver market analysis, strength assessment, investor readiness score, and pitch improvement tips.</p>
       </div>
       <div id="ai-result" class="hidden"></div>
     </div>
@@ -492,18 +492,18 @@
     <div class="flex items-center gap-2 mb-4">
       <span class="chat-ai-icon">💬</span>
       <h3 class="card-title">Chat with AI Advisor</h3>
-      <span class="badge badge-blue">GPT-4</span>
+      <span class="badge badge-blue">Gemini</span>
     </div>
     <div class="ai-chat-messages" id="ai-chat-messages">
       <div class="ai-chat-msg ai-msg">
-        <div class="ai-chat-bubble">Hello! I'm your AI startup advisor powered by GPT-4. Ask me anything about fundraising, product-market fit, or how to improve your pitch.</div>
+        <div class="ai-chat-bubble">Hello! I'm your AI startup advisor powered by Gemini. Ask me anything about fundraising, product-market fit, or how to improve your pitch.</div>
       </div>
     </div>
     <div class="ai-chat-input-row">
-      <input class="form-input flex-1" id="ai-chat-input" placeholder="Ask GPT-4 anything about your startup..." onkeydown="if(event.key==='Enter') sendAIChat()" />
+      <input class="form-input flex-1" id="ai-chat-input" placeholder="Ask Gemini anything about your startup..." onkeydown="if(event.key==='Enter') sendAIChat()" />
       <button type="button" class="btn-primary btn-sm" onclick="sendAIChat()">Send →</button>
     </div>
-    <p class="encrypted-note">🔒 Conversations are processed securely via OpenAI API</p>
+    <p class="encrypted-note">🔒 Conversations are processed securely via Gemini API</p>
   </div>
 </template>
 

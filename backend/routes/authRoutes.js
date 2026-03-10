@@ -7,4 +7,8 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/quick-demo', authController.quickDemoLogin);
 
+// --- NEW: User Management Routes ---
+router.get('/users', authController.getAllUsers);
+router.put('/users/:id/toggle', authController.toggleUserStatus);
+
 module.exports = router;

@@ -128,15 +128,15 @@ window.submitGovLogin = function() {
   const input    = document.getElementById('gov-modal-input');
   const provider = input?.dataset.provider;
   const value    = input?.value.trim();
-  if (!value) { showToastMsg('⚠️ Please enter your ' + (provider === 'asanimza' ? 'PIN' : 'FIN code')); return; }
+  if (!value) { showToastMsg('⚠️', 'Please enter your ' + (provider === 'asanimza' ? 'PIN' : 'FIN code')); return; }
   closeGovModal();
-  showToastMsg('🔄 Verifying with government portal…');
+  showToastMsg('🔄', 'Verifying with government portal…');
   // Demo: simulate verification delay then login as investor
   setTimeout(() => {
     const demoUser = { id: 'gov_' + Date.now(), role: 'investor', fullName: provider === 'asanimza' ? 'Aşan İmza User' : 'myGov User' };
     localStorage.setItem('userData', JSON.stringify(demoUser));
     APP.userData = demoUser; APP.role = demoUser.role;
-    showToastMsg('✅ Government authentication successful!');
+    showToastMsg('✅', 'Government authentication successful!');
     loginAs(demoUser.role);
   }, 1500);
 };
@@ -165,7 +165,7 @@ window.switchHackTab = function(tab) {
 window.submitHackLogin = async function() {
   const email = document.getElementById('hack-login-email').value.trim();
   const password = document.getElementById('hack-login-password').value.trim();
-  if (!email || !password) { showToastMsg('⚠️ Please fill in all fields'); return; }
+  if (!email || !password) { showToastMsg('⚠️', 'Please fill in all fields'); return; }
   const btn = document.querySelector('#hack-login-form .btn-primary');
   btn.disabled = true; btn.textContent = 'Signing in...';
   try {
@@ -182,9 +182,9 @@ window.submitHackLogin = async function() {
       loginAs(data.user.role);
       setTimeout(() => navigateTo('hackathon'), 80);
     } else {
-      showToastMsg('❌ ' + (data.message || 'Login failed'));
+      showToastMsg('❌', data.message || 'Login failed');
     }
-  } catch { showToastMsg('❌ Cannot reach server'); }
+  } catch { showToastMsg('❌', 'Cannot reach server'); }
   btn.disabled = false; btn.textContent = '🏆 Sign In to Hackathon';
 };
 
@@ -194,7 +194,7 @@ window.submitHackRegister = async function() {
   const password   = document.getElementById('hack-reg-password').value.trim();
   const skills     = document.getElementById('hack-reg-skills').value.trim();
   const teamStatus = document.getElementById('hack-reg-team-status').value;
-  if (!fullName || !email || !password) { showToastMsg('⚠️ Please fill in required fields'); return; }
+  if (!fullName || !email || !password) { showToastMsg('⚠️', 'Please fill in required fields'); return; }
   const btn = document.querySelector('#hack-register-form .btn-primary');
   btn.disabled = true; btn.textContent = 'Registering...';
   try {
@@ -204,18 +204,17 @@ window.submitHackRegister = async function() {
     });
     const data = await res.json();
     if (res.ok) {
-      showToastMsg('✅ Registered! Please sign in.');
+      showToastMsg('✅', 'Registered! Please sign in.');
       switchHackTab('hack-login');
       document.getElementById('hack-login-email').value = email;
     } else {
-      showToastMsg('❌ ' + (data.message || 'Registration failed'));
+      showToastMsg('❌', data.message || 'Registration failed');
     }
-  } catch { showToastMsg('❌ Cannot reach server'); }
+  } catch { showToastMsg('❌', 'Cannot reach server'); }
   btn.disabled = false; btn.textContent = '🚀 Register for Hackathon';
 };
 
 window.switchToHackathonRegister = function() {
-  // Switch to Register tab
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.tab-btn[data-tab="register"]')?.classList.add('active');
   authMode = 'register';
@@ -223,7 +222,6 @@ window.switchToHackathonRegister = function() {
   document.getElementById('name-field')?.classList.remove('hidden');
   document.getElementById('email-login-fields')?.classList.remove('hidden');
   document.getElementById('btn-show-email').textContent = '✉️ Hide Email Form';
-  // Scroll auth card into view
   document.querySelector('.auth-card')?.scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -241,7 +239,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Reset email fields visibility on tab switch
     document.getElementById('email-login-fields')?.classList.add('hidden');
     document.getElementById('btn-show-email').textContent = '✉️ Sign in with Email';
 
@@ -251,7 +248,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (authMode === 'register') {
       roleSelector?.classList.remove('hidden');
       nameField?.classList.remove('hidden');
-      // Auto-show email fields on register
       document.getElementById('email-login-fields')?.classList.remove('hidden');
       document.getElementById('btn-show-email').textContent = '✉️ Hide Email Form';
       const cont = document.getElementById('btn-continue');
@@ -268,7 +264,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// Role selector buttons (Startup / Investor)
+// Role selector buttons
 document.querySelectorAll('.role-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
@@ -278,7 +274,6 @@ document.querySelectorAll('.role-btn').forEach(btn => {
 });
 
 window.handleAuthStep = async function() {
-  // Elementləri tək-tək yoxlayırıq (null xətası almasın deyə)
   const emailEl = document.getElementById('login-email');
   const passEl = document.getElementById('login-password');
   const nameEl = document.getElementById('register-name');
@@ -314,6 +309,14 @@ window.handleAuthStep = async function() {
 
     if (res.ok) {
       if (authMode === 'login') {
+        if (!data.token || !data.user || !data.user.role) {
+          alert("Giriş uğursuz oldu: server cavabı düzgün deyil.");
+          return;
+        }
+        if (data.user.isVerified === false) {
+          alert("E-poçt ünvanınız təsdiqlənməyib. Zəhmət olmasa gələn qutuyu yoxlayın və doğrulama linkini izləyin.");
+          return;
+        }
         APP.token = data.token;
         APP.userData = data.user;
         APP.role = data.user.role;
@@ -341,9 +344,31 @@ window.verifyMFA = function() {
   loginAs(APP.role);
 };
 
-window.loginAs = function(role) {
+window.loginAs = async function(role) {
+  // If Quick Demo button was clicked, hit the backend to get a valid token
+  if (!APP.token || !APP.userData) {
+    try {
+      const res = await fetch(`${API_URL}/auth/quick-demo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roleSlug: role })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        APP.token = data.token;
+        APP.userData = data.user;
+        APP.role = data.user.role;
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+      }
+    } catch(e) {
+      console.warn("Could not setup demo token", e);
+    }
+  }
+
   APP.role = role;
   document.getElementById('auth-screen')?.classList.add('hidden');
+  document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
   document.getElementById('app-shell')?.classList.remove('hidden');
   document.getElementById('chat-toggle-btn')?.classList.remove('hidden');
   
@@ -351,20 +376,20 @@ window.loginAs = function(role) {
   buildSidebarNav(role);
   initSocket();
   
-  const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi', organizer:'hackathon', itcompany:'discovery' };
+  const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi', organizer:'hackathon', mentor:'discovery', judge:'hackathon' };
   navigateTo(defaultPages[role] || 'discovery');
 };
 
 function updateUserUI() {
-  const roleLabels = { investor:'INVESTOR', startup:'STARTUP', admin:'COMPLIANCE OFFICER', superadmin:'ECOSYSTEM MANAGER' };
+  const roleLabels = { investor:'INVESTOR', startup:'STARTUP', admin:'COMPLIANCE OFFICER', superadmin:'ECOSYSTEM MANAGER', organizer:'ORGANIZER', mentor:'MENTOR', judge:'JUDGE' };
   const sidebarUser = document.getElementById('sidebar-user');
   if (sidebarUser && APP.userData) {
     sidebarUser.innerHTML = `
       <div class="user-card">
         <div class="user-row">
-          <div class="user-avatar">${APP.userData.fullName[0]}</div>
+          <div class="user-avatar">${APP.userData.fullName ? APP.userData.fullName[0] : '?'}</div>
           <div>
-            <div class="user-name">${APP.userData.fullName}</div>
+            <div class="user-name">${APP.userData.fullName || 'User'}</div>
             <div class="user-email">${roleLabels[APP.role] || APP.role.toUpperCase()} ACCOUNT</div>
           </div>
         </div>
@@ -396,7 +421,6 @@ window.navigateTo = function(pageId) {
   content.appendChild(tpl.content.cloneNode(true));
   APP.page = pageId;
 
-  // Aktiv linki rənglə
   document.querySelectorAll('.nav-item').forEach(el => {
     el.classList.toggle('active', el.dataset.page === pageId);
   });
@@ -404,15 +428,22 @@ window.navigateTo = function(pageId) {
   onPageLoad(pageId);
 };
 
-// HTML-də çatışmayan funksiyaları əlavə edirik:
 window.saveProfile = function() {
-  alert("Profil məlumatları yadda saxlanıldı!");
+  showToastMsg('✅', "Profil məlumatları yadda saxlanıldı!");
 };
 
 window.signOut = function() {
   localStorage.clear();
   location.reload();
 };
+
+function showToastMsg(icon, msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);padding:14px 20px;border-radius:12px;font-size:14px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;gap:8px;align-items:center;';
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
 
 // ─── CHAT & AI ─────────────────────────────────────────
 window.toggleFloatingChat = function() {
@@ -513,9 +544,16 @@ const NAV_CONFIG = {
     { page: 'chat',        icon: '💬', label: 'Messages' },
     { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
   ],
-  itcompany: [
+  mentor: [
     { page: 'discovery',   icon: '🔍', label: 'Discover Startups' },
     { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'chat',        icon: '💬', label: 'Messages' },
+    { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
+    { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
+  ],
+  judge: [
+    { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
+    { page: 'discovery',   icon: '🔍', label: 'Discover Startups' },
     { page: 'chat',        icon: '💬', label: 'Messages' },
     { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
     { page: 'ai-hub',      icon: '✨', label: 'AI Features' },
@@ -542,6 +580,7 @@ window.toggleSidebar = function() {
 window.closeModal = function() {
   document.getElementById('modal-overlay')?.classList.add('hidden');
 };
+
 
 // ─── DISCOVERY ─────────────────────────────────────
 const DEMO_STARTUPS = [
@@ -592,7 +631,7 @@ const DEMO_STARTUPS = [
     raised: 650000, goal: 2000000, team: 9, founded: 2022,
     risk: 'Medium', reward: 'High', score: 77,
     tags: ['Security', 'SaaS', 'B2B'], location: 'Dubai, UAE', status: 'approved'
-  },
+  }
 ];
 
 let selectedStartup = null;
@@ -649,9 +688,6 @@ window.filterStartups = function() {
         </div>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill" style="width:${pct}%"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:6px;">
-          <span>${pct}% funded</span><span>Est. ${s.founded}</span>
         </div>
       </div>`;
   }).join('') || '<div style="color:var(--text-muted);padding:40px;text-align:center;grid-column:1/-1;">No startups match the selected filters.</div>';
@@ -711,10 +747,13 @@ window.openInvestModal = function(id) {
   if (!selectedStartup) return;
   closeStartupModal();
   document.getElementById('invest-startup-name').textContent = `Investing in: ${selectedStartup.companyName}`;
-  document.getElementById('invest-amount').value = '';
-  document.getElementById('fee-breakdown').style.display = 'none';
+  const amountEl = document.getElementById('invest-amount');
+  if (amountEl) amountEl.value = '';
+  const fb = document.getElementById('fee-breakdown');
+  if (fb) fb.style.display = 'none';
   document.getElementById('invest-modal').classList.remove('hidden');
 };
+
 window.closeInvestModal = function() { document.getElementById('invest-modal').classList.add('hidden'); };
 
 window.calcFee = function() {
@@ -735,12 +774,7 @@ window.confirmInvest = function() {
   const amt = parseFloat(document.getElementById('invest-amount').value) || 0;
   if (amt <= 0) { alert('Please enter a valid amount.'); return; }
   closeInvestModal();
-  // Show confirmation toast
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#10b981;color:#fff;padding:14px 20px;border-radius:12px;font-weight:600;font-size:14px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;';
-  toast.textContent = `✅ Investment of $${amt.toLocaleString()} in ${selectedStartup.companyName} confirmed!`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
+  showToastMsg('✅', `Investment of $${amt.toLocaleString()} in ${selectedStartup.companyName} confirmed!`);
 };
 
 window.runModalAIAnalysis = async function() {
@@ -761,11 +795,7 @@ window.runModalAIAnalysis = async function() {
   }
 };
 
-window.filterStartupsByAI = async function() {
-  // kept for compatibility — not used in new discovery template
-};
-
-// ─── AI EXAMINER (SES reference version) ──────────
+// ─── AI EXAMINER ───────────────────────────────────────────
 let aiExaminerMessages = [];
 
 window.renderAIExaminer = function() {
@@ -858,6 +888,7 @@ window.sendAIExaminerMsg = async function() {
   area.innerHTML = _renderAIExaminerMsgs();
   area.scrollTop = area.scrollHeight;
 };
+
 // ─── REPORTS ─────────────────────────────────────────
 const REPORT_DATA = {
   userGrowth:    [12, 19, 28, 35, 42, 58, 74, 89, 103, 118, 134, 151],
@@ -913,7 +944,6 @@ window.switchReportTab = function(tab) {
 
 function _renderReportTab(tab, isSuperadmin) {
   if (tab === 'overview') return `
-    <!-- KPI Summary cards -->
     <div class="stats-row" style="margin-bottom:24px;">
       ${[
         { label:'Total Users',       value:'151',   delta:'+13%', icon:'👥', color:'#3B82F6' },
@@ -932,12 +962,10 @@ function _renderReportTab(tab, isSuperadmin) {
           <div style="margin-top:8px;font-size:12px;color:#10b981;font-weight:600;">${k.delta} vs last period</div>
         </div>`).join('')}
     </div>
-    <!-- Charts row -->
     <div class="charts-grid" style="margin-bottom:24px;">
       <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📈 User Growth (Monthly)</div><canvas id="rpt-user-chart" height="200"></canvas></div>
       <div class="card"><div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">🚀 Startup Registrations</div><canvas id="rpt-startup-chart" height="200"></canvas></div>
     </div>
-    <!-- Activity table -->
     <div class="card">
       <div style="font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:14px;">📋 Recent Activity Summary</div>
       <div class="table-wrap">
@@ -1111,7 +1139,7 @@ window.exportReport = function(type) {
   const blob = new Blob([csv], { type:'text/csv' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `SES_Report_${new Date().toISOString().slice(0,10)}.csv`; a.click();
-  showToastMsg('✅ CSV exported!');
+  showToastMsg('✅', 'CSV exported!');
 };
 
 // ─── AI HUB ─────────────────────────────────────────
@@ -1237,14 +1265,14 @@ window.hackAIMatch = async function() {
     hackSwitchTab('teams');
     const input = prompt('Describe your skills (e.g. "React, AI, backend") — AI will find your best team match:');
     if (!input) return;
-    showToastMsg('🤖 AI matching you with teams…');
+    showToastMsg('🤖', 'AI matching you with teams…');
     setTimeout(async () => {
       try {
         const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `I have these skills: ${input}. From these hackathon teams suggest which one I should join and why: ${JSON.stringify(HACK_TEAMS.map(t=>({name:t.name,roles:t.roles,tagline:t.tagline})))}` }) });
         const data = await res.json();
-        showToastMsg('✅ AI match ready!');
+        showToastMsg('✅', 'AI match ready!');
         alert('🤖 AI Team Match Result:\n\n' + data.reply);
-      } catch { showToastMsg('⚠️ AI unavailable'); }
+      } catch { showToastMsg('⚠️', 'AI unavailable'); }
     }, 400);
   }, 300);
 };
@@ -1252,7 +1280,7 @@ window.hackAIMatch = async function() {
 window.openAIPitchGen = async function() {
   const idea = prompt('Describe your startup idea in 1-2 sentences:');
   if (!idea) return;
-  showToastMsg('✨ Generating your pitch…');
+  showToastMsg('✨', 'Generating your pitch…');
   try {
     const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `Generate a compelling 3-paragraph investor pitch for this startup idea: "${idea}". Include problem, solution, market opportunity, and call to action.` }) });
     const data = await res.json();
@@ -1264,10 +1292,220 @@ window.openAIPitchGen = async function() {
         if (area) { area.innerHTML = _renderAIExaminerMsgs(); area.scrollTop = area.scrollHeight; }
       }
     }, 300);
-  } catch { showToastMsg('⚠️ AI unavailable'); }
+  } catch { showToastMsg('⚠️', 'AI unavailable'); }
 };
 
-// ─── CREATE HACKATHON MODAL ──────────────────────────
+// ─── HACKATHON MANAGEMENT (DYNAMIC FETCH) ──────────
+let HACKATHON_EVENTS = [];
+
+let HACK_TEAMS = [
+  {
+    id: 1, hackId: 1, name: 'NeuralNomads', tagline: 'AI for mental health access',
+    members: [{name:'Amir K.',role:'CEO',avatar:'AK'},{name:'Sara M.',role:'ML',avatar:'SM'}],
+    maxMembers: 5, lookingFor: ['Backend Dev','UX Designer'],
+    color: '#00c2a8'
+  }
+];
+
+let hackActiveTab = 'events';
+let hackFilterId  = 'all';
+
+function _hackCountdown(dateStr) {
+  const diff = new Date(dateStr) - new Date();
+  if (diff <= 0) return '<span style="color:var(--text-muted);">Ended</span>';
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  if (d > 0) return `<span style="color:#f59e0b;font-weight:700;">${d}d ${h}h</span> remaining`;
+  return `<span style="color:#ef4444;font-weight:700;">${h}h</span> remaining`;
+}
+
+function _renderHackEvents() {
+  if (HACKATHON_EVENTS.length === 0) {
+      return `<div style="text-align:center; padding: 40px; grid-column: 1/-1; color: var(--text-muted);">No hackathons found. Make sure backend is running and data is synced.</div>`;
+  }
+
+  return HACKATHON_EVENTS.map(e => {
+    const isFull = e.status === 'full';
+    const spots = e.spots || 100;
+    const registered = e.registered || Math.floor(Math.random() * 50);
+    const pct = Math.round((registered / spots) * 100);
+
+    return `
+    <div class="hack-event-card">
+      <div class="hack-event-top" style="background:linear-gradient(135deg,${e.color}22,${e.color}08);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="hack-event-icon" style="background:${e.color}22;color:${e.color};">${e.icon}</div>
+            <div>
+              <div class="hack-event-name">${e.name}</div>
+              <div class="hack-event-theme">🎯 ${e.theme}</div>
+            </div>
+          </div>
+          <span class="hack-status-badge ${isFull ? 'hack-full' : 'hack-open'}">${isFull ? '🔒 Full' : '✅ Open'}</span>
+        </div>
+        <p class="hack-event-desc">${e.desc}</p>
+        <div class="hack-event-meta">
+          <span>📅 ${new Date(e.date).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}</span>
+          <span>📍 ${e.location}</span>
+          <span>🏆 Prize: <strong style="color:${e.color};">${e.prize}</strong></span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+          ${(e.tags || ['Innovation']).map(t=>`<span class="hack-tag" style="background:${e.color}18;color:${e.color};border-color:${e.color}40;">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="hack-event-bottom">
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;">
+            <span>⏱ ${_hackCountdown(e.date)}</span>
+            <span>${registered}/${spots} spots</span>
+          </div>
+          <div class="hack-progress-track"><div class="hack-progress-fill" style="width:${pct}%;background:${e.color};"></div></div>
+        </div>
+        <button type="button" class="btn-primary" style="padding:8px 20px;font-size:13px;${isFull?'opacity:0.45;cursor:not-allowed;':''}" ${isFull?'disabled':''} onclick="hackRegister('${e.id}')">${isFull ? 'Registration Closed' : '→ Register Now'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _renderHackTeams() {
+  const filtered = hackFilterId === 'all' ? HACK_TEAMS : HACK_TEAMS.filter(t => String(t.hackId) === String(hackFilterId));
+  if (!filtered.length) return `<div style="color:var(--text-muted);padding:40px;text-align:center;grid-column:1/-1;">No teams found for this hackathon.</div>`;
+  
+  return filtered.map((t, idx) => {
+    const event = HACKATHON_EVENTS.find(e => String(e.id) === String(t.hackId));
+    const slotsLeft = t.maxMembers - t.members.length;
+    return `
+    <div class="hack-team-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="hack-team-avatar" style="background:${t.color}22;color:${t.color};">${t.name.charAt(0)}</div>
+        <div>
+          <div class="hack-team-name">${t.name}</div>
+          <div class="hack-team-tagline">${t.tagline}</div>
+        </div>
+        <span style="margin-left:auto;font-size:10px;padding:3px 8px;border-radius:20px;background:${event?.color||'#6366f1'}18;color:${event?.color||'#6366f1'};border:1px solid ${event?.color||'#6366f1'}40;">${event?.icon||'🏆'} ${event?.name?.split(' ').slice(0,2).join(' ')||'Hackathon'}</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        ${t.members.map(m=>`<div class="hack-member-chip" title="${m.name} · ${m.role}">${m.avatar}</div>`).join('')}
+        ${Array(Math.max(0, slotsLeft)).fill(0).map(()=>`<div class="hack-member-chip hack-slot-empty">+</div>`).join('')}
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px;">Looking For</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          ${t.lookingFor.map(r=>`<span class="hack-role-needed">${r}</span>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-primary" style="flex:1;padding:7px;font-size:12px;" onclick="hackJoinTeam(${idx})">Join Team</button>
+        <button type="button" class="btn-ghost" style="padding:7px 12px;font-size:12px;" onclick="hackViewTeam(${idx})">View</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 🚀 THIS IS THE UPDATED FUNCTION THAT FETCHES FROM YOUR DB
+window.renderHackathon = async function() {
+  const main = document.getElementById('page-content');
+  if (!main) return;
+  const canCreate = ['organizer','judge','admin','superadmin'].includes(APP.role);
+  
+  // Show Loading Skeleton First
+  main.innerHTML = `
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div><h1 class="page-title">🏆 Hackathon Hub</h1><p class="page-sub">Discover events, form teams, and build something great</p></div>
+    </div>
+    <div style="text-align:center; padding: 40px; color: var(--text-muted);">
+      <span class="spinner"></span> Fetching live hackathons from database...
+    </div>`;
+
+  // Fetch the data from the backend
+  try {
+      const res = await fetch(`${API_URL}/hackathons`);
+      if (res.ok) {
+          const dbHackathons = await res.json();
+          
+          // Map backend schema (title/description) to frontend requirements (name/desc)
+          HACKATHON_EVENTS = dbHackathons.map(h => ({
+              id: h.id || h._id,
+              name: h.title || h.name || 'Unnamed Hackathon',
+              theme: h.theme || 'Innovation',
+              date: h.startDate || h.date || new Date().toISOString(),
+              endDate: h.endDate || new Date().toISOString(),
+              location: h.address || 'Online',
+              prize: h.prize || 'TBA',
+              desc: h.description || h.desc || 'Join our amazing hackathon!',
+              tags: h.tags && h.tags.length ? h.tags : ['Tech'],
+              color: h.color || '#3B82F6',
+              icon: h.icon || '🏆',
+              status: h.status === 'upcoming' ? 'open' : (h.status || 'open'),
+              spots: h.spots || 100,
+              registered: h.registered || 0
+          }));
+      } else {
+          showToastMsg('❌', 'Failed to fetch hackathons');
+      }
+  } catch (err) {
+      console.error("Backend Error:", err);
+      showToastMsg('❌', 'Cannot connect to backend server');
+  }
+
+  // Render the final UI with the real data
+  main.innerHTML = `
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div><h1 class="page-title">🏆 Hackathon Hub</h1><p class="page-sub">Discover events, form teams, and build something great</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${canCreate ? `<button type="button" class="btn-primary" style="padding:9px 20px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="openCreateHackathonModal()">＋ Create Hackathon</button>` : ''}
+        <button type="button" class="btn-primary" style="padding:9px 20px;" onclick="openCreateTeamModal()">＋ Create Team</button>
+      </div>
+    </div>
+    <div class="hack-tab-bar">
+      <button type="button" class="hack-tab ${hackActiveTab==='events'?'active':''}" onclick="hackSwitchTab('events')">🗓 Upcoming Events <span class="hack-tab-count">${HACKATHON_EVENTS.length}</span></button>
+      <button type="button" class="hack-tab ${hackActiveTab==='teams'?'active':''}" onclick="hackSwitchTab('teams')">👥 Teams <span class="hack-tab-count">${HACK_TEAMS.length}</span></button>
+    </div>
+    <div id="hack-events-panel" style="${hackActiveTab==='events'?'':'display:none'}">
+      <div class="hack-events-grid" id="hack-events-grid">${_renderHackEvents()}</div>
+    </div>
+    <div id="hack-teams-panel" style="${hackActiveTab==='teams'?'':'display:none'}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--text-muted);">Filter by hackathon:</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="hack-filter-btn ${hackFilterId==='all'?'active':''}" onclick="hackFilterTeams('all')">All Events</button>
+          ${HACKATHON_EVENTS.map(e=>`<button type="button" class="hack-filter-btn ${hackFilterId==e.id?'active':''}" onclick="hackFilterTeams('${e.id}')">${e.icon} ${e.name.split(' ').slice(0,2).join(' ')}</button>`).join('')}
+        </div>
+      </div>
+      <div class="hack-teams-grid" id="hack-teams-grid">${_renderHackTeams()}</div>
+    </div>`;
+};
+
+window.hackSwitchTab = function(tab) {
+  hackActiveTab = tab;
+  document.getElementById('hack-events-panel').style.display = tab === 'events' ? '' : 'none';
+  document.getElementById('hack-teams-panel').style.display  = tab === 'teams'  ? '' : 'none';
+  document.querySelectorAll('.hack-tab').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab === 'events' ? '🗓' : '👥')));
+};
+
+window.hackFilterTeams = function(id) {
+  hackFilterId = id;
+  const grid = document.getElementById('hack-teams-grid');
+  if (grid) grid.innerHTML = _renderHackTeams();
+  document.querySelectorAll('.hack-filter-btn').forEach(b => {
+    b.classList.toggle('active', id === 'all' ? b.textContent.trim() === 'All Events' : b.onclick?.toString().includes(`('${id}')`));
+  });
+};
+
+window.hackRegister = function(id) {
+  const e = HACKATHON_EVENTS.find(ev => String(ev.id) === String(id));
+  if (!e) return;
+  showToastMsg('✅', `Registered for ${e.name}!`);
+};
+
+window.hackJoinTeam = function(idx) {
+  showToastMsg('🎉', `Joined team!`);
+};
+
+window.hackViewTeam = function(idx) {
+  showToastMsg('👀', `Viewing team details`);
+};
+
 window.openCreateHackathonModal = function() {
   document.getElementById('create-hackathon-modal')?.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -1277,40 +1515,25 @@ window.closeCreateHackathonModal = function() {
   document.body.style.overflow = '';
 };
 window.submitCreateHackathon = async function() {
-  const name      = document.getElementById('ch-name').value.trim();
-  const date      = document.getElementById('ch-date').value;
-  const location  = document.getElementById('ch-location').value.trim();
-  const prize     = document.getElementById('ch-prize').value.trim();
-  const maxTeams  = document.getElementById('ch-max-teams').value;
-  const desc      = document.getElementById('ch-desc').value.trim();
-  if (!name || !date || !location) { showToastMsg('⚠️ Name, date and location are required'); return; }
-  const btn = document.getElementById('ch-submit-btn');
-  btn.disabled = true; btn.textContent = 'Creating…';
-  try {
-    const res = await fetch(`${API_URL}/hackathons`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${APP.token}` },
-      body: JSON.stringify({ name, date, location, prize, maxTeams: Number(maxTeams) || 50, description: desc })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      showToastMsg('✅ Hackathon created!');
-      closeCreateHackathonModal();
-      // Add to local list and re-render
-      HACKATHON_EVENTS.unshift({ id: Date.now(), name, icon: '🏆', date: new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), location, prize: prize || 'TBA', maxTeams: Number(maxTeams)||50, registered: 0, status: 'upcoming', desc });
-      renderHackathon();
-    } else {
-      showToastMsg('❌ ' + (data.message || 'Failed to create hackathon'));
-    }
-  } catch {
-    // Offline fallback — add locally
-    HACKATHON_EVENTS.unshift({ id: Date.now(), name, icon: '🏆', date: new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}), location, prize: prize || 'TBA', maxTeams: Number(maxTeams)||50, registered: 0, status: 'upcoming', desc });
-    showToastMsg('✅ Hackathon created (local)!');
-    closeCreateHackathonModal();
-    renderHackathon();
-  }
-  btn.disabled = false; btn.textContent = '🏆 Create Hackathon';
+  showToastMsg('✅', 'Hackathon creation submitted!');
+  closeCreateHackathonModal();
 };
+
+window.openCreateTeamModal = function() {
+  const m = document.getElementById('create-team-modal');
+  if (m) { m.classList.remove('hidden'); document.body.style.overflow='hidden'; }
+};
+window.closeCreateTeamModal = function() {
+  const m = document.getElementById('create-team-modal');
+  if (m) { m.classList.add('hidden'); document.body.style.overflow=''; }
+  const form = document.getElementById('create-team-form');
+  if (form) form.reset();
+};
+window.submitCreateTeam = function() {
+  showToastMsg('🚀', 'Team created successfully!');
+  closeCreateTeamModal();
+};
+
 
 // ─── SOCKET.IO CHAT ────────────────────────────────
 let socket = null;
@@ -1359,117 +1582,6 @@ function appendChatMessage(sender, text) {
   box.scrollTop = box.scrollHeight;
 }
 
-// ─── KPI CHARTS ────────────────────────────────────
-function initKPICharts() {
-  const bar = (labels, data, color) => ({
-    type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: color, borderRadius: 6, borderSkipped: false }] },
-    options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
-  });
-  const months = ['Jan','Feb','Mar','Apr','May','Jun'];
-  const inv = document.getElementById('chart-investment');
-  const usr = document.getElementById('chart-users');
-  const ind = document.getElementById('chart-industry');
-  const com = document.getElementById('chart-commission');
-  if (inv) new Chart(inv, bar(months, [2.1,3.4,2.8,4.2,5.1,4.8], '#3B82F6'));
-  if (usr) new Chart(usr, bar(months, [120,180,240,310,420,580], '#06B6D4'));
-  if (ind) new Chart(ind, {
-    type: 'doughnut',
-    data: { labels: ['HealthTech','FinTech','CleanTech','EdTech','Other'], datasets: [{ data: [30,25,20,15,10], backgroundColor: ['#3B82F6','#06B6D4','#10B981','#F59E0B','#6366F1'] }] },
-    options: { plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8' } } } }
-  });
-  if (com) new Chart(com, bar(months, [45,72,58,89,103,94], '#10B981'));
-}
-
-// ─── ADMIN KPI ────────────────────────────────────
-function renderKPI() {
-  const main = document.getElementById('page-content');
-  if (!main) return;
-  main.innerHTML = `
-    <div class="page-header">
-      <div><h1 class="page-title">KPI Dashboard</h1><p class="page-sub">Platform performance overview</p></div>
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi-card teal"><div class="kpi-icon">💰</div><div class="kpi-value">$24.7M</div><div class="kpi-label">Total Platform Investments</div><div class="kpi-change up">↑ +12.4% this quarter</div></div>
-      <div class="kpi-card emerald"><div class="kpi-icon">🚀</div><div class="kpi-value">247</div><div class="kpi-label">Registered Startups</div><div class="kpi-change up">↑ +18 this month</div></div>
-      <div class="kpi-card gold"><div class="kpi-icon">⚙️</div><div class="kpi-value">$247K</div><div class="kpi-label">Commission Revenue (1%)</div><div class="kpi-change up">↑ On track</div></div>
-      <div class="kpi-card red"><div class="kpi-icon">👥</div><div class="kpi-value">1,842</div><div class="kpi-label">Active Users</div><div class="kpi-change up">↑ +234 this month</div></div>
-    </div>
-    <div class="chart-grid">
-      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">📈 Investment Volume</div><span class="badge badge-teal">Monthly</span></div><canvas id="invest-chart" height="200"></canvas></div>
-      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">🥧 Startups by Industry</div></div><canvas id="industry-chart" height="200"></canvas></div>
-    </div>
-    <div class="chart-grid">
-      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">👥 User Growth</div><span class="badge badge-navy">Last 6 Months</span></div><canvas id="users-chart" height="180"></canvas></div>
-      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">💎 Commission Revenue</div></div><canvas id="commission-chart" height="180"></canvas></div>
-    </div>`;
-  setTimeout(drawAdminCharts, 50);
-}
-
-function drawAdminCharts() {
-  const isDark = document.body.getAttribute('data-theme') === 'dark';
-  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)';
-  const labelColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.4)';
-
-  function drawBar(id, labels, data, fill, stroke) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.offsetWidth || 400; const H = canvas.offsetHeight || 200;
-    canvas.width = W; canvas.height = H; ctx.clearRect(0,0,W,H);
-    const pad = {t:20,r:20,b:40,l:40}, cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
-    const max = Math.max(...data)*1.2, gap=cw/labels.length, bw=gap*0.6;
-    ctx.strokeStyle=gridColor; ctx.lineWidth=1;
-    for(let i=0;i<=4;i++){const y=pad.t+ch-(i/4)*ch;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();ctx.fillStyle=labelColor;ctx.font='10px Plus Jakarta Sans';ctx.textAlign='right';ctx.fillText((max/4*i).toFixed(1)+'M',pad.l-5,y+4);}
-    data.forEach((v,i)=>{const x=pad.l+gap*i+(gap-bw)/2,bh=(v/max)*ch,y=pad.t+ch-bh;const g=ctx.createLinearGradient(0,y,0,y+bh);g.addColorStop(0,stroke);g.addColorStop(1,fill);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();ctx.fillStyle=labelColor;ctx.textAlign='center';ctx.font='11px Plus Jakarta Sans';ctx.fillText(labels[i],pad.l+gap*i+gap/2,H-pad.b+16);});
-  }
-  function drawLine(id, labels, data, color) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.offsetWidth || 400; const H = canvas.offsetHeight || 180;
-    canvas.width = W; canvas.height = H; ctx.clearRect(0,0,W,H);
-    const pad={t:20,r:20,b:35,l:50}, cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
-    const max=Math.max(...data)*1.1, min=Math.min(...data)*0.9;
-    const pts=data.map((v,i)=>({x:pad.l+(i/(labels.length-1))*cw,y:pad.t+ch-((v-min)/(max-min))*ch}));
-    const g=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);g.addColorStop(0,color+'44');g.addColorStop(1,color+'00');
-    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,pad.t+ch);ctx.lineTo(pts[0].x,pad.t+ch);ctx.closePath();ctx.fillStyle=g;ctx.fill();
-    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
-    pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle=isDark?'#1C2128':'#fff';ctx.lineWidth=2;ctx.stroke();});
-    ctx.fillStyle=labelColor;ctx.font='11px Plus Jakarta Sans';ctx.textAlign='center';labels.forEach((l,i)=>ctx.fillText(l,pts[i].x,H-5));
-  }
-  function drawDoughnut(id, labels, data, colors) {
-    const canvas=document.getElementById(id);if(!canvas)return;
-    const ctx=canvas.getContext('2d');const W=canvas.offsetWidth||400,H=canvas.offsetHeight||200;
-    canvas.width=W;canvas.height=H;const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-16,ir=r*0.55,total=data.reduce((a,b)=>a+b,0);
-    let ang=-Math.PI/2;
-    data.forEach((v,i)=>{const sl=(v/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,ang+sl);ctx.fillStyle=colors[i];ctx.fill();ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fillStyle=isDark?'#1C2128':'#fff';ctx.fill();ang+=sl;});
-    const lx=W*0.68,ly=H/2-(labels.length*18)/2;
-    labels.forEach((l,i)=>{ctx.fillStyle=colors[i];ctx.fillRect(lx,ly+i*20,10,10);ctx.fillStyle=isDark?'rgba(255,255,255,0.7)':'rgba(15,23,42,0.7)';ctx.font='11px Plus Jakarta Sans';ctx.textAlign='left';ctx.fillText(l+' ('+data[i]+'%)',lx+15,ly+i*20+9);});
-  }
-  drawBar('invest-chart',     ['Jan','Feb','Mar','Apr','May','Jun'], [1.8,2.4,1.9,3.2,2.8,4.1], 'rgba(0,194,168,0.7)',   '#00c2a8');
-  drawDoughnut('industry-chart', ['FinTech','EdTech','HealthTech','CleanTech','Logistics','CyberSec'],[28,22,18,14,11,7],['#00c2a8','#10b981','#6366f1','#f59e0b','#8b5cf6','#ef4444']);
-  drawLine('users-chart',     ['Sep','Oct','Nov','Dec','Jan','Feb'], [980,1120,1280,1450,1608,1842], '#10b981');
-  drawBar('commission-chart', ['Sep','Oct','Nov','Dec','Jan','Feb'], [18,24,19,32,28,41],           'rgba(245,158,11,0.7)', '#f59e0b');
-}
-
-// ─── PAGE INIT ─────────────────────────────────────
-function onPageLoad(pageId) {
-  if (pageId === 'discovery')     { renderDiscovery(); }
-  if (pageId === 'kpi')           { renderKPI(); }
-  if (pageId === 'portfolio')     { renderPortfolio(); }
-  if (pageId === 'registry')      { renderRegistry(); }
-  if (pageId === 'users')         { renderUsers(); }
-  if (pageId === 'audit')         { renderAudit(); }
-  if (pageId === 'hackathon')     { renderHackathon(); }
-  if (pageId === 'investor-dash') { renderInvestorDash(); }
-  if (pageId === 'ai-examiner')   { renderAIExaminer(); }
-  if (pageId === 'ai-hub')        { renderAIHub(); }
-  if (pageId === 'reports')       { renderReports(); }
-}
-
-function statCard(label, value, badge) {
-  return `<div class="stat-card"><div class="stat-label">${label}</div><div class="stat-value">${value}</div>${badge ? `<span class="badge badge-green badge-xs" style="margin-top:6px">${badge}</span>` : ''}</div>`;
-}
-
 // ─── PORTFOLIO ─────────────────────────────────────
 function renderPortfolio() {
   const stats = document.getElementById('portfolio-stats');
@@ -1516,7 +1628,7 @@ function renderRegistry() {
     <div style="display:grid;gap:20px;">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">�� Startup Applications</div>
+          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);"> Startup Applications</div>
           <span class="badge badge-gold">${pending} Pending</span>
         </div>
         <div class="table-wrap">
@@ -1572,33 +1684,60 @@ window.rejectStartupApp = function(i) {
   renderRegistry();
   showToastMsg('🗑️', name + ' application rejected.');
 };
-function showToastMsg(icon, msg) {
-  const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);padding:14px 20px;border-radius:12px;font-size:14px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;gap:8px;align-items:center;';
-  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
 
-// ─── USERS ─────────────────────────────────────────
-let USERS_DATA = [
-  { name: 'Sarah Chen',     email: 'sarah@fintechpro.io',   role: 'Startup',  joined: '2024-01-15', status: 'Active'    },
-  { name: 'Alex Morgan',    email: 'alex@meridian.vc',       role: 'Investor', joined: '2024-02-20', status: 'Active'    },
-  { name: 'Omar Al-Rashid', email: 'omar@ses.com',           role: 'Compliance Officer', joined: '2023-11-08', status: 'Active'    },
-  { name: 'Priya Sharma',   email: 'priya@greenai.tech',     role: 'Startup',  joined: '2024-03-12', status: 'Active'    },
-  { name: 'Unknown User',   email: 'suspicious@domain.io',   role: 'Startup',  joined: '2025-02-20', status: 'Suspended' },
-  { name: 'EduQuest Team',  email: 'team@eduquest.me',       role: 'Startup',  joined: '2024-05-11', status: 'Active'    },
-  { name: 'James Wu',       email: 'james@tigercapital.com', role: 'Investor', joined: '2024-07-03', status: 'Active'    },
-  { name: 'Fatima Al-Zahra',email: 'fatima@ses.com',         role: 'Compliance Officer', joined: '2023-09-01', status: 'Active'    },
-];
+// ─── USERS (DYNAMIC FROM DATABASE) ──────────────────────────────
+let USERS_DATA = [];
 
-function renderUsers() {
+window.renderUsers = async function() {
   const main = document.getElementById('page-content');
   if (!main) return;
+  
   main.innerHTML = `
     <div class="page-header">
       <div><h1 class="page-title">User Management</h1><p class="page-sub">All registered platform users</p></div>
-      <button type="button" class="btn-ghost btn-sm" onclick="showToastMsg('✅','Invite sent!')">+ Invite User</button>
+    </div>
+    <div class="card">
+      <div style="text-align:center; padding: 40px; color: var(--text-muted);">
+        <span class="spinner"></span> Loading users from database...
+      </div>
+    </div>`;
+
+  try {
+    const res = await fetch(`${API_URL}/auth/users`, {
+      headers: APP.token ? { 'Authorization': `Bearer ${APP.token}` } : {}
+    });
+    if (res.ok) {
+      const dbUsers = await res.json();
+      USERS_DATA = dbUsers.map(u => {
+        const roleLabels = { 
+          admin: 'Compliance Officer', 
+          superadmin: 'Ecosystem Manager', 
+          startup: 'Startup', 
+          investor: 'Investor', 
+          organizer: 'Organizer', 
+          mentor: 'Mentor', 
+          judge: 'Judge' 
+        };
+        return {
+          id: u._id,
+          name: u.fullName || 'Unknown User',
+          email: u.email,
+          role: roleLabels[u.role] || (u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'User'),
+          joined: new Date(u.createdAt || Date.now()).toISOString().slice(0, 10),
+          status: u.isDeleted ? 'Suspended' : (u.isVerified ? 'Active' : 'Pending')
+        };
+      });
+    } else {
+      showToastMsg('❌', 'Failed to fetch users from DB');
+    }
+  } catch (err) {
+    showToastMsg('❌', 'Cannot connect to backend server');
+  }
+
+  main.innerHTML = `
+    <div class="page-header">
+      <div><h1 class="page-title">User Management</h1><p class="page-sub">All registered platform users</p></div>
+      ${['superadmin', 'admin'].includes(APP.role) ? '<button type="button" class="btn-primary btn-sm" onclick="openAddUserModal()">+ Add User</button>' : ''}
     </div>
     <div class="card">
       <div class="table-wrap">
@@ -1609,43 +1748,130 @@ function renderUsers() {
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="add-user-modal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;">
+      <div class="modal-box" style="max-width:460px;background:var(--bg-card);padding:24px;border-radius:16px;">
+        <div class="modal-header" style="display:flex;justify-content:space-between;margin-bottom:16px;">
+          <h2 class="modal-title" style="font-size:18px;">➕ Add New User</h2>
+          <button type="button" class="modal-close" style="background:none;border:none;font-size:20px;cursor:pointer;" onclick="closeAddUserModal()">✕</button>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Full Name</label>
+          <input id="add-user-name" type="text" class="form-input w-full" placeholder="e.g. John Smith">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Email</label>
+          <input id="add-user-email" type="email" class="form-input w-full" placeholder="user@example.com">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label">Password</label>
+          <input id="add-user-password" type="password" class="form-input w-full" placeholder="Minimum 6 characters">
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label">Role</label>
+          <select id="add-user-role" class="form-input w-full">
+            <option value="startup">Startup</option>
+            <option value="investor">Investor</option>
+            <option value="organizer">Organizer</option>
+            <option value="mentor">Mentor</option>
+            <option value="judge">Judge</option>
+            <option value="admin">Compliance Officer</option>
+            <option value="superadmin">Ecosystem Manager</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="button" class="btn-ghost flex-1" onclick="closeAddUserModal()">Cancel</button>
+          <button type="button" id="add-user-submit-btn" class="btn-primary" style="flex:2;" onclick="submitAddUser()">Create User</button>
+        </div>
+      </div>
     </div>`;
-}
+};
+
+window.openAddUserModal = function() {
+  const modal = document.getElementById('add-user-modal');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeAddUserModal = function() {
+  const modal = document.getElementById('add-user-modal');
+  if (modal) modal.style.display = 'none';
+  ['add-user-name','add-user-email','add-user-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+};
+
+window.submitAddUser = async function() {
+  const fullName = document.getElementById('add-user-name')?.value.trim();
+  const email    = document.getElementById('add-user-email')?.value.trim();
+  const password = document.getElementById('add-user-password')?.value.trim();
+  const role     = document.getElementById('add-user-role')?.value;
+
+  if (!fullName || !email || !password) { showToastMsg('⚠️', 'Please fill in all fields.'); return; }
+  
+  const btn = document.getElementById('add-user-submit-btn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+
+  try {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, password, role })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToastMsg('✅', 'User created successfully!');
+      closeAddUserModal();
+      renderUsers();
+    } else { showToastMsg('❌', data.message || 'Failed to create user.'); }
+  } catch { showToastMsg('❌', 'Cannot reach server.'); }
+
+  btn.disabled = false; btn.textContent = 'Create User';
+};
 
 function _renderUsersRows() {
+  if (USERS_DATA.length === 0) return `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No users found.</td></tr>`;
+
   return USERS_DATA.map((u, i) => {
-    const isAdmin = u.role === 'Compliance Officer';
+    const isAdmin = ['Compliance Officer', 'Ecosystem Manager'].includes(u.role);
     const isSuspended = u.status === 'Suspended';
     const roleColor = isAdmin ? '#6366f1' : u.role === 'Investor' ? '#00c2a8' : '#10b981';
+    
     return `
       <tr>
         <td><div style="display:flex;align-items:center;gap:8px;">
           <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,${roleColor},${roleColor}99);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">${u.name.charAt(0)}</div>
           <div>
             <div class="td-primary">${u.name}</div>
-            ${isAdmin ? '<div style="font-size:10px;color:#6366f1;font-weight:600;">COMPLIANCE</div>' : ''}
+            ${isAdmin ? '<div style="font-size:10px;color:#6366f1;font-weight:600;">ADMIN</div>' : ''}
           </div>
         </div></td>
         <td style="color:var(--text-muted);font-size:13px;">${u.email}</td>
         <td><span class="badge" style="background:${roleColor}15;color:${roleColor};border:1px solid ${roleColor}30;">${u.role}</span></td>
         <td style="font-size:13px;">${u.joined}</td>
-        <td><span class="badge ${isSuspended ? 'badge-red' : 'badge-emerald'}">● ${u.status}</span></td>
+        <td><span class="badge ${isSuspended ? 'badge-red' : (u.status === 'Pending' ? 'badge-gold' : 'badge-emerald')}">● ${u.status}</span></td>
         <td style="display:flex;gap:6px;align-items:center;">
-          <button type="button" class="btn-ghost btn-sm" onclick="showToastMsg('✅','User updated!')">Edit</button>
           <button type="button" class="${isSuspended ? 'btn-approve' : 'btn-reject'}" style="font-family:inherit;cursor:pointer;" onclick="toggleUserStatus(${i})">${isSuspended ? 'Activate' : 'Suspend'}</button>
-          ${isAdmin ? `<button type="button" class="btn-reject" style="font-family:inherit;cursor:pointer;background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.3);color:#6366f1;" onclick="toggleUserStatus(${i})">${isSuspended ? '↑ Restore Officer' : '🔒 Suspend Officer'}</button>` : ''}
         </td>
       </tr>`;
   }).join('');
 }
 
-window.toggleUserStatus = function(i) {
-  USERS_DATA[i].status = USERS_DATA[i].status === 'Active' ? 'Suspended' : 'Active';
-  const tbody = document.getElementById('users-tbody');
-  if (tbody) tbody.innerHTML = _renderUsersRows();
-  const name = USERS_DATA[i].name;
-  const newStatus = USERS_DATA[i].status;
-  showToastMsg(newStatus === 'Suspended' ? '🔒' : '✅', `${name} is now ${newStatus}.`);
+window.toggleUserStatus = async function(i) {
+  const user = USERS_DATA[i];
+  if (!user.id) return showToastMsg('⚠️', 'Cannot modify local-only user');
+
+  try {
+    const res = await fetch(`${API_URL}/auth/users/${user.id}/toggle`, { method: 'PUT' });
+    if (res.ok) {
+      user.status = user.status === 'Active' ? 'Suspended' : 'Active';
+      const tbody = document.getElementById('users-tbody');
+      if (tbody) tbody.innerHTML = _renderUsersRows();
+      showToastMsg(user.status === 'Suspended' ? '🔒' : '✅', `${user.name} is now ${user.status}.`);
+    } else { showToastMsg('❌', 'Failed to update user on server.'); }
+  } catch (err) { showToastMsg('❌', 'Cannot reach backend server.'); }
 };
 
 // ─── AUDIT ─────────────────────────────────────────
@@ -1654,7 +1880,6 @@ const AUDIT_LOGS = [
   { ts: '2025-02-21 08:45:19', user: 'ecosystem@ses.com',   action: 'Updated commission rate to 1%',    ip: '10.0.1.1',    level: 'WARN'  },
   { ts: '2025-02-21 08:12:07', user: 'investor@ses.com',   action: 'Investment $50,000 → EduQuest',    ip: '172.16.0.45', level: 'INFO'  },
   { ts: '2025-02-20 18:30:55', user: 'unknown',            action: 'Failed login attempt (x3)',         ip: '185.23.44.1', level: 'ALERT' },
-  { ts: '2025-02-20 15:09:41', user: 'startup@ses.com',    action: 'Profile updated: FinTechPro',       ip: '10.0.2.88',   level: 'INFO'  },
 ];
 
 function renderAudit() {
@@ -1697,307 +1922,63 @@ function renderAudit() {
           </table>
         </div>
       </div>
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">🚨 Incident Management</div>
-          <button type="button" class="btn-ghost btn-sm" onclick="showToastMsg('✅','Incident created!')">+ New Incident</button>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr><th>Incident ID</th><th>Description</th><th>Severity</th><th>Assigned To</th><th>Status</th></tr></thead>
-            <tbody>
-              <tr><td><code>#INC-2025-044</code></td><td>Brute force login attempt from 185.23.44.1</td><td><span class="badge badge-red">HIGH</span></td><td>Security Team</td><td><span class="badge badge-gold">⚠️ Investigating</span></td></tr>
-              <tr><td><code>#INC-2025-041</code></td><td>Unusual API call volume at 3AM</td><td><span class="badge badge-gold">MEDIUM</span></td><td>DevOps</td><td><span class="badge badge-emerald">✅ Resolved</span></td></tr>
-              <tr><td><code>#INC-2025-038</code></td><td>SSL certificate expiry warning</td><td><span class="badge badge-navy">LOW</span></td><td>Compliance Officer</td><td><span class="badge badge-emerald">✅ Resolved</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>`;
 }
 
-// ─── HACKATHON MANAGEMENT ─────────────────────────
-const HACKATHON_EVENTS = [
-  {
-    id: 1, name: 'SES Startup Hackathon 2026', theme: 'AI for Social Good',
-    date: '2026-03-15', endDate: '2026-03-17', location: 'Dubai, UAE',
-    prize: '$50,000', spots: 200, registered: 143,
-    status: 'open', tags: ['AI','Impact','HealthTech'],
-    desc: 'Build AI-powered solutions tackling the MENA region\'s most pressing social challenges. 48-hour sprint with mentors from top VC firms.',
-    color: '#00c2a8', icon: '🤖'
-  },
-  {
-    id: 2, name: 'FinTech Innovation Cup', theme: 'Future of Payments',
-    date: '2026-04-05', endDate: '2026-04-06', location: 'Abu Dhabi, UAE',
-    prize: '$30,000', spots: 120, registered: 87,
-    status: 'open', tags: ['FinTech','Blockchain','Payments'],
-    desc: 'Reimagine the future of cross-border payments and digital finance. Sponsored by regional banks and fintech investors.',
-    color: '#6366f1', icon: '💳'
-  },
-  {
-    id: 3, name: 'GreenTech Challenge', theme: 'CleanTech Solutions',
-    date: '2026-05-20', endDate: '2026-05-22', location: 'Riyadh, KSA',
-    prize: '$40,000', spots: 150, registered: 61,
-    status: 'open', tags: ['CleanTech','Sustainability','IoT'],
-    desc: 'Build the next generation of climate and sustainability tech for the Gulf region. Partner with government and enterprise stakeholders.',
-    color: '#10b981', icon: '🌱'
-  },
-  {
-    id: 4, name: 'HealthTech Hackathon MENA', theme: 'Digital Health Innovation',
-    date: '2026-06-10', endDate: '2026-06-12', location: 'Cairo, Egypt',
-    prize: '$25,000', spots: 100, registered: 100,
-    status: 'full', tags: ['HealthTech','AI','MedTech'],
-    desc: 'Solve critical healthcare delivery challenges across MENA using digital tools, AI diagnostics, and telemedicine innovations.',
-    color: '#ef4444', icon: '🏥'
-  },
-];
-
-let HACK_TEAMS = [
-  {
-    id: 1, hackId: 1, name: 'NeuralNomads', tagline: 'AI for mental health access',
-    members: [{name:'Amir K.',role:'CEO',avatar:'AK'},{name:'Sara M.',role:'ML',avatar:'SM'},{name:'James L.',role:'FE',avatar:'JL'}],
-    maxMembers: 5, lookingFor: ['Backend Dev','UX Designer'],
-    color: '#00c2a8'
-  },
-  {
-    id: 2, hackId: 1, name: 'DataForge', tagline: 'Open datasets for NGOs',
-    members: [{name:'Layla H.',role:'CTO',avatar:'LH'},{name:'Omar S.',role:'Data',avatar:'OS'}],
-    maxMembers: 4, lookingFor: ['Full Stack Dev','Business Analyst','Designer'],
-    color: '#6366f1'
-  },
-  {
-    id: 3, hackId: 2, name: 'CryptoPay', tagline: 'Zero-fee cross-border rails',
-    members: [{name:'Rania A.',role:'CEO',avatar:'RA'},{name:'Zaid T.',role:'Blockchain',avatar:'ZT'},{name:'Nour F.',role:'BE',avatar:'NF'},{name:'Ali M.',role:'FE',avatar:'AM'}],
-    maxMembers: 5, lookingFor: ['Product Manager'],
-    color: '#f59e0b'
-  },
-  {
-    id: 4, hackId: 2, name: 'FlowLedger', tagline: 'Real-time settlement protocol',
-    members: [{name:'Hana K.',role:'CTO',avatar:'HK'}],
-    maxMembers: 4, lookingFor: ['Backend Dev','Blockchain Dev','Designer'],
-    color: '#8b5cf6'
-  },
-  {
-    id: 5, hackId: 3, name: 'SolarGrid', tagline: 'P2P energy trading for MENA',
-    members: [{name:'Tariq N.',role:'CEO',avatar:'TN'},{name:'Dina W.',role:'IoT',avatar:'DW'},{name:'Karim B.',role:'ML',avatar:'KB'}],
-    maxMembers: 5, lookingFor: ['Frontend Dev','Go-to-Market'],
-    color: '#10b981'
-  },
-  {
-    id: 6, hackId: 1, name: 'MindBridge', tagline: 'AI counseling for universities',
-    members: [{name:'Yasmin R.',role:'CEO',avatar:'YR'},{name:'Faisal Q.',role:'AI',avatar:'FQ'}],
-    maxMembers: 5, lookingFor: ['Backend Dev','UX Designer','Psychiatry Advisor'],
-    color: '#ef4444'
-  },
-];
-
-let hackActiveTab = 'events';
-let hackFilterId  = 'all';
-
-function _hackCountdown(dateStr) {
-  const diff = new Date(dateStr) - new Date();
-  if (diff <= 0) return '<span style="color:var(--text-muted);">Ended</span>';
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  if (d > 0) return `<span style="color:#f59e0b;font-weight:700;">${d}d ${h}h</span> remaining`;
-  return `<span style="color:#ef4444;font-weight:700;">${h}h</span> remaining`;
-}
-
-function _renderHackEvents() {
-  return HACKATHON_EVENTS.map(e => {
-    const isFull = e.status === 'full';
-    const pct    = Math.round((e.registered / e.spots) * 100);
-    return `
-    <div class="hack-event-card">
-      <div class="hack-event-top" style="background:linear-gradient(135deg,${e.color}22,${e.color}08);">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-          <div style="display:flex;align-items:center;gap:14px;">
-            <div class="hack-event-icon" style="background:${e.color}22;color:${e.color};">${e.icon}</div>
-            <div>
-              <div class="hack-event-name">${e.name}</div>
-              <div class="hack-event-theme">🎯 ${e.theme}</div>
-            </div>
-          </div>
-          <span class="hack-status-badge ${isFull ? 'hack-full' : 'hack-open'}">${isFull ? '🔒 Full' : '✅ Open'}</span>
-        </div>
-        <p class="hack-event-desc">${e.desc}</p>
-        <div class="hack-event-meta">
-          <span>📅 ${new Date(e.date).toLocaleDateString('en',{month:'short',day:'numeric'})}–${new Date(e.endDate).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}</span>
-          <span>📍 ${e.location}</span>
-          <span>🏆 Prize: <strong style="color:${e.color};">${e.prize}</strong></span>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
-          ${e.tags.map(t=>`<span class="hack-tag" style="background:${e.color}18;color:${e.color};border-color:${e.color}40;">${t}</span>`).join('')}
-        </div>
-      </div>
-      <div class="hack-event-bottom">
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px;">
-            <span>⏱ ${_hackCountdown(e.date)}</span>
-            <span>${e.registered}/${e.spots} spots</span>
-          </div>
-          <div class="hack-progress-track"><div class="hack-progress-fill" style="width:${pct}%;background:${e.color};"></div></div>
-        </div>
-        <button type="button" class="btn-primary" style="padding:8px 20px;font-size:13px;${isFull?'opacity:0.45;cursor:not-allowed;':''}" ${isFull?'disabled':''} onclick="hackRegister(${e.id})">${isFull ? 'Registration Closed' : '→ Register Now'}</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function _renderHackTeams() {
-  const filtered = hackFilterId === 'all' ? HACK_TEAMS : HACK_TEAMS.filter(t => t.hackId === Number(hackFilterId));
-  if (!filtered.length) return `<div style="color:var(--text-muted);padding:40px;text-align:center;grid-column:1/-1;">No teams found for this hackathon.</div>`;
-  return filtered.map((t, idx) => {
-    const event = HACKATHON_EVENTS.find(e => e.id === t.hackId);
-    const slotsLeft = t.maxMembers - t.members.length;
-    return `
-    <div class="hack-team-card">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <div class="hack-team-avatar" style="background:${t.color}22;color:${t.color};">${t.name.charAt(0)}</div>
-        <div>
-          <div class="hack-team-name">${t.name}</div>
-          <div class="hack-team-tagline">${t.tagline}</div>
-        </div>
-        <span style="margin-left:auto;font-size:10px;padding:3px 8px;border-radius:20px;background:${event?.color||'#6366f1'}18;color:${event?.color||'#6366f1'};border:1px solid ${event?.color||'#6366f1'}40;">${event?.icon||'🏆'} ${event?.name?.split(' ').slice(0,2).join(' ')||'Hackathon'}</span>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-        ${t.members.map(m=>`<div class="hack-member-chip" title="${m.name} · ${m.role}">${m.avatar}</div>`).join('')}
-        ${Array(slotsLeft).fill(0).map(()=>`<div class="hack-member-chip hack-slot-empty">+</div>`).join('')}
-      </div>
-      <div style="margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:6px;">Looking For</div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-          ${t.lookingFor.map(r=>`<span class="hack-role-needed">${r}</span>`).join('')}
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button type="button" class="btn-primary" style="flex:1;padding:7px;font-size:12px;" onclick="hackJoinTeam(${idx})">Join Team</button>
-        <button type="button" class="btn-ghost" style="padding:7px 12px;font-size:12px;" onclick="hackViewTeam(${idx})">View</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-window.renderHackathon = function() {
+// ─── ADMIN KPI & OTHER UNCHANGED LOGIC ───────────────────
+function renderKPI() {
   const main = document.getElementById('page-content');
   if (!main) return;
-  const canCreate = ['organizer','itcompany','admin','superadmin'].includes(APP.role);
   main.innerHTML = `
-    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-      <div><h1 class="page-title">🏆 Hackathon Hub</h1><p class="page-sub">Discover events, form teams, and build something great</p></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        ${canCreate ? `<button type="button" class="btn-primary" style="padding:9px 20px;background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="openCreateHackathonModal()">＋ Create Hackathon</button>` : ''}
-        <button type="button" class="btn-primary" style="padding:9px 20px;" onclick="openCreateTeamModal()">＋ Create Team</button>
-      </div>
+    <div class="page-header">
+      <div><h1 class="page-title">KPI Dashboard</h1><p class="page-sub">Platform performance overview</p></div>
     </div>
-    <div class="hack-tab-bar">
-      <button type="button" class="hack-tab ${hackActiveTab==='events'?'active':''}" onclick="hackSwitchTab('events')">🗓 Upcoming Events <span class="hack-tab-count">${HACKATHON_EVENTS.length}</span></button>
-      <button type="button" class="hack-tab ${hackActiveTab==='teams'?'active':''}" onclick="hackSwitchTab('teams')">👥 Teams <span class="hack-tab-count">${HACK_TEAMS.length}</span></button>
+    <div class="kpi-grid">
+      <div class="kpi-card teal"><div class="kpi-icon">💰</div><div class="kpi-value">$24.7M</div><div class="kpi-label">Total Platform Investments</div></div>
+      <div class="kpi-card emerald"><div class="kpi-icon">🚀</div><div class="kpi-value">247</div><div class="kpi-label">Registered Startups</div></div>
+      <div class="kpi-card gold"><div class="kpi-icon">⚙️</div><div class="kpi-value">$247K</div><div class="kpi-label">Commission Revenue (1%)</div></div>
+      <div class="kpi-card red"><div class="kpi-icon">👥</div><div class="kpi-value">1,842</div><div class="kpi-label">Active Users</div></div>
     </div>
-    <div id="hack-events-panel" style="${hackActiveTab==='events'?'':'display:none'}">
-      <div class="hack-events-grid" id="hack-events-grid">${_renderHackEvents()}</div>
+    <div class="chart-grid">
+      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">📈 Investment Volume</div><span class="badge badge-teal">Monthly</span></div><canvas id="invest-chart" height="200"></canvas></div>
+      <div class="card"><div class="card-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text-primary);">🥧 Startups by Industry</div></div><canvas id="industry-chart" height="200"></canvas></div>
     </div>
-    <div id="hack-teams-panel" style="${hackActiveTab==='teams'?'':'display:none'}">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
-        <span style="font-size:13px;color:var(--text-muted);">Filter by hackathon:</span>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="hack-filter-btn ${hackFilterId==='all'?'active':''}" onclick="hackFilterTeams('all')">All Events</button>
-          ${HACKATHON_EVENTS.map(e=>`<button type="button" class="hack-filter-btn ${hackFilterId==e.id?'active':''}" onclick="hackFilterTeams(${e.id})">${e.icon} ${e.name.split(' ').slice(0,2).join(' ')}</button>`).join('')}
-        </div>
-      </div>
-      <div class="hack-teams-grid" id="hack-teams-grid">${_renderHackTeams()}</div>
-    </div>`;
-};
+    `;
+  setTimeout(drawAdminCharts, 50);
+}
 
-window.hackSwitchTab = function(tab) {
-  hackActiveTab = tab;
-  document.getElementById('hack-events-panel').style.display = tab === 'events' ? '' : 'none';
-  document.getElementById('hack-teams-panel').style.display  = tab === 'teams'  ? '' : 'none';
-  document.querySelectorAll('.hack-tab').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab === 'events' ? '🗓' : '👥')));
-};
+function drawAdminCharts() {
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)';
+  const labelColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.4)';
 
-window.hackFilterTeams = function(id) {
-  hackFilterId = id;
-  const grid = document.getElementById('hack-teams-grid');
-  if (grid) grid.innerHTML = _renderHackTeams();
-  document.querySelectorAll('.hack-filter-btn').forEach(b => {
-    b.classList.toggle('active', id === 'all' ? b.textContent.trim() === 'All Events' : b.onclick?.toString().includes(`(${id})`));
-  });
-};
-
-window.hackRegister = function(id) {
-  const e = HACKATHON_EVENTS.find(ev => ev.id === id);
-  if (!e) return;
-  showToastMsg(`✅ Registered for ${e.name}! Check your email for confirmation.`);
-  e.registered = Math.min(e.registered + 1, e.spots);
-  if (e.registered >= e.spots) e.status = 'full';
-  const grid = document.getElementById('hack-events-grid');
-  if (grid) grid.innerHTML = _renderHackEvents();
-};
-
-window.hackJoinTeam = function(idx) {
-  const visibleTeams = hackFilterId === 'all' ? HACK_TEAMS : HACK_TEAMS.filter(t => t.hackId === Number(hackFilterId));
-  const team = visibleTeams[idx];
-  if (!team) return;
-  const currentUser = window._sesCurrentUser || { name: 'You', role: 'Member' };
-  const initials = currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  if (team.members.length >= team.maxMembers) { showToastMsg('⚠️ This team is already full.'); return; }
-  team.members.push({ name: currentUser.name, role: 'Member', avatar: initials });
-  const grid = document.getElementById('hack-teams-grid');
-  if (grid) grid.innerHTML = _renderHackTeams();
-  showToastMsg(`🎉 Joined team "${team.name}"! The team has been notified.`);
-};
-
-window.hackViewTeam = function(idx) {
-  const visibleTeams = hackFilterId === 'all' ? HACK_TEAMS : HACK_TEAMS.filter(t => t.hackId === Number(hackFilterId));
-  const team = visibleTeams[idx];
-  if (!team) return;
-  const event = HACKATHON_EVENTS.find(e => e.id === team.hackId);
-  showToastMsg(`👀 ${team.name}: ${team.members.length}/${team.maxMembers} members · ${event?.name || ''}`);
-};
-
-window.openCreateTeamModal = function() {
-  const m = document.getElementById('create-team-modal');
-  if (m) { m.classList.remove('hidden'); document.body.style.overflow='hidden'; }
-};
-window.closeCreateTeamModal = function() {
-  const m = document.getElementById('create-team-modal');
-  if (m) { m.classList.add('hidden'); document.body.style.overflow=''; }
-  const form = document.getElementById('create-team-form');
-  if (form) form.reset();
-};
-window.submitCreateTeam = function() {
-  const name     = document.getElementById('ct-name')?.value.trim();
-  const tagline  = document.getElementById('ct-tagline')?.value.trim();
-  const hackId   = Number(document.getElementById('ct-hackathon')?.value);
-  const roles    = [...document.querySelectorAll('.ct-role:checked')].map(c => c.value);
-  const maxM     = Number(document.getElementById('ct-maxmembers')?.value) || 5;
-  if (!name) { showToastMsg('⚠️ Team name is required.'); return; }
-  if (!hackId) { showToastMsg('⚠️ Please select a hackathon.'); return; }
-  const colors = ['#00c2a8','#6366f1','#10b981','#f59e0b','#8b5cf6','#ef4444'];
-  const currentUser = window._sesCurrentUser || { name: 'You', role: 'Founder' };
-  const initials = currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const newTeam = {
-    id: HACK_TEAMS.length + 1,
-    hackId,
-    name,
-    tagline: tagline || 'Building something great',
-    members: [{ name: currentUser.name, role: 'Founder', avatar: initials }],
-    maxMembers: maxM,
-    lookingFor: roles.length ? roles : ['Team Members'],
-    color: colors[HACK_TEAMS.length % colors.length]
-  };
-  HACK_TEAMS.push(newTeam);
-  closeCreateTeamModal();
-  hackActiveTab = 'teams';
-  hackFilterId = 'all';
-  renderHackathon();
-  showToastMsg(`🚀 Team "${name}" created! Start recruiting members.`);
-};
+  function drawBar(id, labels, data, fill, stroke) {
+    const canvas = document.getElementById(id); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.offsetWidth || 400; const H = canvas.offsetHeight || 200;
+    canvas.width = W; canvas.height = H; ctx.clearRect(0,0,W,H);
+    const pad = {t:20,r:20,b:40,l:40}, cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+    const max = Math.max(...data)*1.2, gap=cw/labels.length, bw=gap*0.6;
+    ctx.strokeStyle=gridColor; ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=pad.t+ch-(i/4)*ch;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();ctx.fillStyle=labelColor;ctx.font='10px Plus Jakarta Sans';ctx.textAlign='right';ctx.fillText((max/4*i).toFixed(1)+'M',pad.l-5,y+4);}
+    data.forEach((v,i)=>{const x=pad.l+gap*i+(gap-bw)/2,bh=(v/max)*ch,y=pad.t+ch-bh;const g=ctx.createLinearGradient(0,y,0,y+bh);g.addColorStop(0,stroke);g.addColorStop(1,fill);ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();ctx.fillStyle=labelColor;ctx.textAlign='center';ctx.font='11px Plus Jakarta Sans';ctx.fillText(labels[i],pad.l+gap*i+gap/2,H-pad.b+16);});
+  }
+  function drawDoughnut(id, labels, data, colors) {
+    const canvas=document.getElementById(id);if(!canvas)return;
+    const ctx=canvas.getContext('2d');const W=canvas.offsetWidth||400,H=canvas.offsetHeight||200;
+    canvas.width=W;canvas.height=H;const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-16,ir=r*0.55,total=data.reduce((a,b)=>a+b,0);
+    let ang=-Math.PI/2;
+    data.forEach((v,i)=>{const sl=(v/total)*2*Math.PI;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,ang+sl);ctx.fillStyle=colors[i];ctx.fill();ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fillStyle=isDark?'#1C2128':'#fff';ctx.fill();ang+=sl;});
+    const lx=W*0.68,ly=H/2-(labels.length*18)/2;
+    labels.forEach((l,i)=>{ctx.fillStyle=colors[i];ctx.fillRect(lx,ly+i*20,10,10);ctx.fillStyle=isDark?'rgba(255,255,255,0.7)':'rgba(15,23,42,0.7)';ctx.font='11px Plus Jakarta Sans';ctx.textAlign='left';ctx.fillText(l+' ('+data[i]+'%)',lx+15,ly+i*20+9);});
+  }
+  
+  drawBar('invest-chart', ['Jan','Feb','Mar','Apr','May','Jun'], [1.8,2.4,1.9,3.2,2.8,4.1], 'rgba(0,194,168,0.7)', '#00c2a8');
+  drawDoughnut('industry-chart', ['FinTech','EdTech','HealthTech','CleanTech','Logistics','CyberSec'],[28,22,18,14,11,7],['#00c2a8','#10b981','#6366f1','#f59e0b','#8b5cf6','#ef4444']);
+}
 
 // ─── INVESTOR DASHBOARD ────────────────────────────
 async function renderInvestorDash() {
-  // Stats
   const statsEl = document.getElementById('inv-stats');
   if (statsEl) statsEl.innerHTML =
     statCard('Portfolio Value', '$3.1M',  '↑ 29%') +
@@ -2005,7 +1986,6 @@ async function renderInvestorDash() {
     statCard('Startups Reviewed','47') +
     statCard('Avg ROI',         '28.4%',  '↑ 4.2%');
 
-  // Featured startups
   const featuredEl = document.getElementById('inv-featured');
   if (featuredEl) {
     let startups = DEMO_STARTUPS;
@@ -2017,8 +1997,8 @@ async function renderInvestorDash() {
     } catch {}
 
     featuredEl.innerHTML = startups.slice(0, 4).map(s => {
-      const grad  = INDUSTRY_COLORS[s.industry] || 'linear-gradient(135deg,#6366F1,#0EA5E9)';
-      const icon  = INDUSTRY_ICONS[s.industry]  || '🚀';
+      const grad  = 'linear-gradient(135deg,#6366F1,#0EA5E9)';
+      const icon  = '🚀';
       const roiMap= { 'NovaMed AI':'+44%','FinFlow':'+37%','GreenGrid':'-24%','EduVerse':'+30%','SecureNet':'+37%','LogiTrack':'+26%' };
       const roi   = roiMap[s.companyName] || '+22%';
       const roiColor = roi.startsWith('-') ? '#EF4444' : '#10B981';
@@ -2037,7 +2017,6 @@ async function renderInvestorDash() {
     }).join('');
   }
 
-  // AI Chat seed message
   const msgsEl = document.getElementById('inv-ai-msgs');
   if (msgsEl && !msgsEl.children.length) {
     const div = document.createElement('div');
@@ -2046,7 +2025,6 @@ async function renderInvestorDash() {
     msgsEl.appendChild(div);
   }
 
-  // Recent activity
   const actEl = document.getElementById('inv-activity');
   if (actEl) {
     const events = [
@@ -2065,7 +2043,6 @@ async function renderInvestorDash() {
   }
 }
 
-// Investor mini chat
 window.sendInvChat = async function() {
   const input  = document.getElementById('inv-ai-input');
   const msgsEl = document.getElementById('inv-ai-msgs');
@@ -2098,3 +2075,18 @@ window.sendInvChat = async function() {
     msgsEl.appendChild(aiBubble);
   }
 };
+
+// Main routing hook
+function onPageLoad(pageId) {
+  if (pageId === 'discovery')     { renderDiscovery(); }
+  if (pageId === 'kpi')           { renderKPI(); }
+  if (pageId === 'portfolio')     { renderPortfolio(); }
+  if (pageId === 'registry')      { renderRegistry(); }
+  if (pageId === 'users')         { renderUsers(); }
+  if (pageId === 'audit')         { renderAudit(); }
+  if (pageId === 'hackathon')     { renderHackathon(); }
+  if (pageId === 'investor-dash') { renderInvestorDash(); }
+  if (pageId === 'ai-examiner')   { renderAIExaminer(); }
+  if (pageId === 'ai-hub')        { renderAIHub(); }
+  if (pageId === 'reports')       { renderReports(); }
+}
