@@ -79,15 +79,15 @@
         <div id="email-login-fields" class="hidden">
           <div id="name-field" class="hidden">
             <label class="form-label">Company / Full Name</label>
-            <input type="text" class="form-input" id="register-name" placeholder="Enter your name or company" />
+            <input type="text" class="form-input" id="register-name" placeholder="Enter your name or company" onkeydown="if(event.key === 'Enter') handleAuthStep()" />
           </div>
           <div>
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-input" id="login-email" placeholder="you@company.com" />
+            <input type="email" class="form-input" id="login-email" placeholder="you@company.com" onkeydown="if(event.key === 'Enter') handleAuthStep()" />
           </div>
           <div>
             <label class="form-label">Password</label>
-            <input type="password" class="form-input" id="login-password" placeholder="••••••••••••" />
+            <input type="password" class="form-input" id="login-password" placeholder="••••••••••••" onkeydown="if(event.key === 'Enter') handleAuthStep()" />
           </div>
           <button type="button" class="btn-primary w-full" id="btn-continue" onclick="handleAuthStep()">Continue →</button>
         </div>
@@ -113,15 +113,15 @@
           <div class="mfa-title">Two-Factor Authentication</div>
           <div class="mfa-sub">Enter the 6-digit code from your authenticator app</div>
         </div>
-        <div class="mfa-inputs">
-          <input type="text" maxlength="1" class="mfa-digit" />
-          <input type="text" maxlength="1" class="mfa-digit" />
-          <input type="text" maxlength="1" class="mfa-digit" />
-          <input type="text" maxlength="1" class="mfa-digit" />
-          <input type="text" maxlength="1" class="mfa-digit" />
-          <input type="text" maxlength="1" class="mfa-digit" />
+        <div class="mfa-inputs" id="mfa-container">
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
+          <input type="text" maxlength="1" class="mfa-digit" onkeydown="if(event.key === 'Enter') verifyMFA()" />
         </div>
-        <button type="button" class="btn-primary w-full" id="btn-verify" onclick="verifyMFA()">Verify & Sign In</button>
+        <button type="button" class="btn-primary w-full" id="btn-verify" onclick="verifyMFA()" style="margin-top: 16px;">Verify & Sign In</button>
       </div>
 
       <!-- Hackathon Buttons -->
@@ -919,6 +919,44 @@
     <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
       <button type="button" class="btn-ghost" onclick="closeCreateTeamModal()">Cancel</button>
       <button type="button" class="btn-primary" onclick="submitCreateTeam()">🚀 Create Team</button>
+    </div>
+  </div>
+</div>
+<div id="find-team-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeFindTeamModal()">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size: 24px;">🤖</div>
+        <div>
+          <span class="modal-title" style="font-size: 18px;">AI Team Matchmaker</span>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Powered by Gemini API</div>
+        </div>
+      </div>
+      <button type="button" class="modal-close" onclick="closeFindTeamModal()">✕</button>
+    </div>
+    
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;">
+      <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">
+        Describe your skills and the kind of hackathon team you want to join. Our AI will scan the ecosystem and find the perfect match.
+      </p>
+      
+      <div>
+        <label class="form-label">Your Skills & Goals</label>
+        <textarea id="ai-team-prompt" class="form-input w-full" rows="4" placeholder="e.g., I'm a React developer with a bit of Python experience. I want to join a FinTech or AI hackathon team that needs frontend help..." style="resize:none; font-family: inherit;"></textarea>
+      </div>
+
+      <div id="ai-team-loading" class="hidden" style="text-align: center; padding: 20px;">
+        <div class="ai-icon-big" style="font-size: 40px; animation: pulse 1.5s infinite;">🧠</div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 10px;">Analyzing ecosystem profiles...</p>
+      </div>
+
+      <div id="ai-team-results" class="hidden" style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;">
+      </div>
+    </div>
+
+    <div class="modal-footer" style="display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+      <button type="button" class="btn-ghost" onclick="closeFindTeamModal()">Cancel</button>
+      <button type="button" id="btn-run-matchmaker" class="btn-primary" style="background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;" onclick="runTeamMatch()">✨ Find My Team</button>
     </div>
   </div>
 </div>

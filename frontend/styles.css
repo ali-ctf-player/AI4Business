@@ -221,15 +221,22 @@ body {
 
 .auth-card {
   width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.6); /* Sleek light glass */
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: var(--radius-2xl);
-  padding: 32px;
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 36px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .auth-footer {
@@ -315,11 +322,11 @@ body {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 11px 14px;
+  padding: 13px 16px; /* Taller padding for a premium feel */
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;
-  transition: all 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
 }
 .form-input:focus {
@@ -452,6 +459,13 @@ body {
   text-align: center;
 }
 .demo-btn:hover { background: var(--bg-hover); border-color: rgba(99,102,241,0.2); color: var(--text-primary); }
+
+#btn-continue {
+  padding: 14px;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  margin-top: 8px;
+}
 
 /* ═══════════════════════════════════════════════════════
    BADGES

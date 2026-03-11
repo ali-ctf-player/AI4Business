@@ -66,6 +66,33 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ─── MFA AUTO-ADVANCE LOGIC ────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const mfaInputs = document.querySelectorAll('.mfa-digit');
+  
+  mfaInputs.forEach((input, index) => {
+    input.addEventListener('keyup', (e) => {
+      // If the user typed a number
+      if (e.key >= '0' && e.key <= '9') {
+        // Move to the next input if it exists
+        if (index < mfaInputs.length - 1) {
+          mfaInputs[index + 1].focus();
+        } else {
+          // If it's the last box, automatically trigger the verification!
+          verifyMFA(); 
+        }
+      } 
+      // If the user pressed Backspace
+      else if (e.key === 'Backspace') {
+        // Move to the previous input if it exists
+        if (index > 0) {
+          mfaInputs[index - 1].focus();
+        }
+      }
+    });
+  });
+});
+
 // ─── AUTHENTICATION ───────────────────────────────────
 let authMode = 'login';
 let selectedRole = 'startup';
@@ -290,7 +317,8 @@ window.handleAuthStep = async function() {
   const fullName = nameEl ? nameEl.value.trim() : "";
 
   if (!email || !password) {
-    alert("Zəhmət olmasa email və şifrəni daxil edin.");
+    // 🎨 Swapped alert for Toast
+    showToastMsg('⚠️', "Zəhmət olmasa email və şifrəni daxil edin.");
     return;
   }
 
@@ -314,11 +342,13 @@ window.handleAuthStep = async function() {
     if (res.ok) {
       if (authMode === 'login') {
         if (!data.token || !data.user || !data.user.role) {
-          alert("Giriş uğursuz oldu: server cavabı düzgün deyil.");
+          // 🎨 Swapped alert for Toast
+          showToastMsg('❌', "Giriş uğursuz oldu: server cavabı düzgün deyil.");
           return;
         }
         if (data.user.isVerified === false) {
-          alert("E-poçt ünvanınız təsdiqlənməyib. Zəhmət olmasa gələn qutuyu yoxlayın və doğrulama linkini izləyin.");
+          // 🎨 Swapped alert for Toast
+          showToastMsg('⚠️', "E-poçt ünvanınız təsdiqlənməyib. Zəhmət olmasa gələn qutuyu yoxlayın və doğrulama linkini izləyin.");
           return;
         }
         APP.token = data.token;
@@ -330,14 +360,18 @@ window.handleAuthStep = async function() {
         document.getElementById('step-credentials')?.classList.add('hidden');
         document.getElementById('step-mfa')?.classList.remove('hidden');
       } else {
-        alert("Qeydiyyat uğurludur! Giriş edin.");
-        location.reload();
+        // 🎨 Swapped alert for Toast
+        showToastMsg('✅', "Qeydiyyat uğurludur! Giriş edin.");
+        // We add a 1.5 second delay before reloading so the user has time to read the beautiful success message!
+        setTimeout(() => location.reload(), 1500);
       }
     } else {
-      alert(data.message || "Xəta!");
+      // 🎨 Swapped alert for Toast
+      showToastMsg('❌', data.message || "Xəta!");
     }
   } catch (err) {
-    alert("Backend serverə qoşulmaq mümkün deyil!");
+    // 🎨 Swapped alert for Toast
+    showToastMsg('❌', "Backend serverə qoşulmaq mümkün deyil!");
   } finally {
     btn.disabled = false;
     btn.textContent = 'Continue →';
@@ -1563,22 +1597,87 @@ window.renderAIHub = function() {
     </div>`;
 };
 
-window.hackAIMatch = async function() {
-  navigateTo('hackathon');
-  setTimeout(() => {
-    hackSwitchTab('teams');
-    const input = prompt('Describe your skills (e.g. "React, AI, backend") — AI will find your best team match:');
-    if (!input) return;
-    showToastMsg('🤖', 'AI matching you with teams…');
-    setTimeout(async () => {
-      try {
-        const res  = await fetch(`${API_URL}/ai/ask`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: `I have these skills: ${input}. Suggest which team I should join.` }) });
-        const data = await res.json();
-        showToastMsg('✅', 'AI match ready!');
-        alert('🤖 AI Team Match Result:\n\n' + data.reply);
-      } catch { showToastMsg('⚠️', 'AI unavailable'); }
-    }, 400);
-  }, 300);
+// ─── AI TEAM MATCHMAKER MODAL LOGIC ─────────────────────
+
+window.hackAIMatch = function() {
+  const modal = document.getElementById('find-team-modal');
+  if (!modal) return console.error("Find Team Modal HTML is missing!");
+  
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  
+  // Reset the UI states every time it opens
+  document.getElementById('ai-team-prompt').value = '';
+  document.getElementById('ai-team-loading').classList.add('hidden');
+  document.getElementById('ai-team-results').classList.add('hidden');
+  document.getElementById('ai-team-prompt').parentElement.classList.remove('hidden');
+};
+
+window.closeFindTeamModal = function() {
+  document.getElementById('find-team-modal')?.classList.add('hidden');
+  document.body.style.overflow = '';
+};
+
+window.runTeamMatch = async function() {
+  const promptInput = document.getElementById('ai-team-prompt');
+  const text = promptInput?.value.trim();
+
+  if (!text) {
+    showToastMsg('⚠️', 'Please describe your skills and what you are looking for!');
+    return;
+  }
+
+  // Hide the text box and show the cool loading animation
+  promptInput.parentElement.classList.add('hidden');
+  document.getElementById('ai-team-loading').classList.remove('hidden');
+  document.getElementById('ai-team-results').classList.add('hidden');
+
+  const btn = document.getElementById('btn-run-matchmaker');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Scanning Ecosystem...';
+  }
+
+  try {
+    // Call your newly secured backend API
+    const res = await fetch(`${API_URL}/ai/match-team`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${APP.token}`
+      },
+      body: JSON.stringify({ prompt: text })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Hide loading, show results
+      document.getElementById('ai-team-loading').classList.add('hidden');
+      const resultsDiv = document.getElementById('ai-team-results');
+      resultsDiv.classList.remove('hidden');
+      
+      // Render the AI response
+      resultsDiv.innerHTML = `
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;">✨ Match Recommendations</div>
+        <div style="font-size:14px;color:var(--text-primary);line-height:1.6;white-space:pre-wrap;">${data.result || data.reply || data.message || "Match found!"}</div>
+        <button type="button" class="btn-primary" style="margin-top:16px;width:100%;" onclick="closeFindTeamModal(); navigateTo('hackathon'); hackSwitchTab('teams');">Browse Hackathon Teams</button>
+      `;
+      showToastMsg('✅', 'AI found your matches!');
+    } else {
+      throw new Error(data.message || 'Matchmaking failed');
+    }
+  } catch (err) {
+    showToastMsg('❌', err.message || 'AI service unavailable');
+    // If it fails, bring the text box back so they can try again
+    promptInput.parentElement.classList.remove('hidden');
+    document.getElementById('ai-team-loading').classList.add('hidden');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '✨ Find My Team';
+    }
+  }
 };
 
 // ─── REPORTS ─────────────────────────────
