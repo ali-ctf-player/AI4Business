@@ -2,7 +2,39 @@
    SES — Startup Ecosystem Support Platform
    Inspired by Linear, Vercel, Stripe enterprise aesthetics
 ═══════════════════════════════════════════════════════ */
+/* 1. CORE TYPOGRAPHY & HIGH-CONTRAST COLORS */
+:root {
+  /* Use a premium, highly readable system font stack */
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
+/* Force high-contrast variables for Dark Mode */
+body[data-theme="dark"] {
+  --bg-color: #0f172a; /* Deep, rich slate (not pure black) */
+  --text-primary: #f8fafc; /* Crisp, near-white for headings (very readable) */
+  --text-secondary: #94a3b8; /* Cool, light slate for paragraphs (soft on the eyes) */
+  --accent-color: #3b82f6; /* Bright blue for links/buttons */
+}
+
+/* Apply them globally */
+body {
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+  background-color: var(--bg-color);
+  -webkit-font-smoothing: antialiased; /* Makes text look sharper on Mac/iOS */
+}
+
+/* Ensure headings pop */
+h1, h2, h3, .hero-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em; /* Tightens large text slightly for a modern look */
+}
+
+/* Ensure paragraphs drop back slightly */
+p {
+  color: var(--text-secondary);
+}
 /* ─── TOKENS ─────────────────────────────────────────── */
 :root {
   /* ── Dark Blue Surface Palette ── */
@@ -70,7 +102,7 @@
 
 /* ─── RESET & BASE ───────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 18px; scroll-behavior: smooth; }
+html { font-size: 18px; }
 
 /* ─── ANIMATED BACKGROUND LAYER ──────────────────────── */
 body {
@@ -3088,4 +3120,62 @@ body[data-theme="dark"] .demo-float-btn:hover {
 @keyframes buttonShimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+/* ═══════════════════════════════════════════════════════
+   📱 MOBILE & TABLET RESPONSIVENESS (Max Width: 768px)
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  
+  /* 1. Shrink the massive Hero spacing */
+  .hero-section {
+    padding-top: 140px; /* Reduced from 280px */
+    padding-bottom: 80px; /* Reduced from 200px */
+  }
+
+  /* 2. Scale down the giant title so it fits on a phone screen */
+  .hero-title {
+    font-size: 2.5rem; /* Adjust this if your title is still too big */
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+
+  /* 3. Tighten the paragraph text */
+  .hero-section > p {
+    font-size: 16px; /* Smaller, readable mobile size */
+    margin: 0 auto 40px auto; /* Reduced gap before buttons */
+    padding: 0 20px; /* Keeps text from touching the edge of the phone */
+  }
+
+  /* 4. Make buttons stack on top of each other on mobile */
+  .button-group {
+    display: flex;
+    flex-direction: column; /* Stacks them vertically */
+    width: 100%;
+    padding: 0 24px;
+    gap: 16px;
+  }
+
+  .button-group a, 
+  .button-group button {
+    width: 100%; /* Makes buttons full-width for easy thumb tapping */
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* 5. Adjust the floating Dashboard Mockup */
+  .hero-app-mockup {
+    margin-top: 60px; /* Pulls it closer to the text */
+    width: 90%; /* Leaves a nice border on the edges */
+  }
+
+  /* 6. Fix the Navbar for Mobile */
+  .nav-container {
+    width: 95%;
+    padding: 12px 16px;
+  }
+  
+  .nav-links {
+    display: none; /* Hides the center text links so they don't overlap the logo */
+  }
 }
