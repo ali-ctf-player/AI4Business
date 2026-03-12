@@ -3,7 +3,7 @@
 // Auto-detect host so the app works from localhost AND from phone on same WiFi
 const _HOST = window.location.hostname;
 const API_URL = _HOST.includes('vercel.app') 
-  ? 'https://ai4business-backend.onrender.com/api' // <-- PASTE YOUR RENDER URL HERE
+  ? 'https://ai4business-9z7o.onrender.com/api' // <-- PASTE YOUR RENDER URL HERE
   : `http://${_HOST}:5000/api`;
 const APP = {
   role: null,
