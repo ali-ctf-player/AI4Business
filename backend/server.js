@@ -50,6 +50,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'http://192.168.1.75:3000',
+  'https://ai4business-9z7o.onrender.com',
   'http://localhost:5500',
   'http://127.0.0.1:8080',
   'http://localhost:8080'
