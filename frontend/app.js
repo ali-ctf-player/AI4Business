@@ -2,8 +2,9 @@
 
 // Auto-detect host so the app works from localhost AND from phone on same WiFi
 const _HOST = window.location.hostname;
-const API_URL   = `http://${_HOST}:5000/api`;
-
+const API_URL = _HOST.includes('vercel.app') 
+  ? 'https://ai4business-backend.onrender.com/api' // <-- PASTE YOUR RENDER URL HERE
+  : `http://${_HOST}:5000/api`;
 const APP = {
   role: null,
   page: null,
@@ -40,11 +41,48 @@ window.addEventListener('DOMContentLoaded', () => {
 // ─── INITIALIZATION ───────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   initCanvas();
-  // Pick up OAuth token from redirect query params
+  
+  // 1. Setup Landing Page Scroll Animations
+  const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+  const scrollObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target); // Only animate once
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.scroll-reveal').forEach(el => {
+    scrollObserver.observe(el);
+  });
+
+  // ─── SMART NAVBAR (Hide on Scroll Down) ──────────────────
+  let lastScrollY = window.scrollY;
+  const navBar = document.querySelector('.premium-nav');
+
+  window.addEventListener('scroll', () => {
+    if (!navBar) return;
+    
+    const currentScrollY = window.scrollY;
+    
+    // If scrolling down AND we are past the very top of the page
+    if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      navBar.classList.add('nav-hidden');
+    } else {
+      // If scrolling up, bring it back
+      navBar.classList.remove('nav-hidden');
+    }
+    
+    lastScrollY = currentScrollY;
+  }, { passive: true }); // passive: true makes the scrolling extremely smooth
+
+  // 2. Pick up OAuth token from redirect query params
   const params = new URLSearchParams(window.location.search);
   const oauthToken = params.get('token');
   const oauthUser  = params.get('user');
   const authError  = params.get('auth_error');
+  
   if (oauthToken && oauthUser) {
     try {
       const user = JSON.parse(decodeURIComponent(oauthUser));
@@ -52,17 +90,44 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('userData', JSON.stringify(user));
       APP.token = oauthToken; APP.userData = user; APP.role = user.role;
       window.history.replaceState({}, '', window.location.pathname);
+      
+      // Instantly hide public pages before triggering the login logic
+      document.getElementById('landing-page')?.classList.add('hidden');
+      document.getElementById('auth-screen')?.classList.add('hidden');
       loginAs(user.role);
       return;
     } catch(e) {}
   }
+  
   if (authError) {
     window.history.replaceState({}, '', window.location.pathname);
     showToastMsg(`❌ ${authError.charAt(0).toUpperCase()+authError.slice(1)} login failed. Try again.`);
   }
+  
+  // 3. Check if user is already logged in from a previous session
   if (APP.token && APP.userData) {
     APP.role = APP.userData.role;
-    loginAs(APP.role);
+    
+    // INSTANTLY hide the landing page and auth screens (no animations)
+    document.getElementById('landing-page')?.classList.add('hidden');
+    document.getElementById('auth-screen')?.classList.add('hidden');
+    document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
+    
+    // Instantly show the dashboard
+    document.getElementById('app-shell')?.classList.remove('hidden');
+    document.getElementById('chat-toggle-btn')?.classList.remove('hidden');
+    
+    updateUserUI();
+    buildSidebarNav(APP.role);
+    initSocket();
+    
+    const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi', organizer:'hackathon', mentor:'discovery', judge:'hackathon' };
+    navigateTo(defaultPages[APP.role] || 'discovery');
+    
+  } else {
+    // 4. NOT logged in: Show landing page and trigger the hero animation
+    document.getElementById('app-shell')?.classList.add('hidden'); // Ensure dashboard is hidden
+    document.querySelector('.hero-section')?.classList.add('is-visible', 'scroll-reveal');
   }
 });
 
@@ -92,6 +157,42 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// ─── NATIVE VIEW TRANSITIONS (Zero Flash Motion) ─────────────────────────
+function switchTemplate(currentId, nextId, callback = null) {
+  const currentScreen = document.getElementById(currentId);
+  const nextScreen = document.getElementById(nextId);
+
+  if (!currentScreen || !nextScreen) return;
+
+  // Check if browser supports the modern View Transitions API
+  if (!document.startViewTransition) {
+    // Fallback for older browsers: instant switch without flashes
+    currentScreen.classList.add('hidden');
+    nextScreen.classList.remove('hidden');
+    if (callback) callback();
+    return;
+  }
+
+  // The Magic: The browser freezes the screen, lets you update the DOM, 
+  // and then morphs them together. No white gaps allowed.
+  document.startViewTransition(() => {
+    currentScreen.classList.add('hidden');
+    nextScreen.classList.remove('hidden');
+    if (callback) callback();
+  });
+}
+
+// ─── LANDING PAGE NAVIGATION ─────────────────────────
+window.goToLogin = function(tab) {
+  // Smoothly transition from Landing Page to Auth Screen
+  switchTemplate('landing-page', 'auth-screen', () => {
+    // If you have a specific tab to switch to (login vs register), do it here
+    if (typeof switchTab === 'function') {
+      switchTab(tab); 
+    }
+  });
+};
 
 // ─── AUTHENTICATION ───────────────────────────────────
 let authMode = 'login';
@@ -170,14 +271,15 @@ window.submitGovLogin = function() {
 
 // ─── HACKATHON AUTH PAGE ────────────────────────────────
 window.openHackathonAuth = function(tab = 'login') {
-  document.getElementById('auth-screen')?.classList.add('hidden');
-  document.getElementById('hackathon-auth-screen')?.classList.remove('hidden');
-  switchHackTab(tab);
+  // Smoothly transition from main auth to hackathon auth
+  switchTemplate('auth-screen', 'hackathon-auth-screen', () => {
+    switchHackTab(tab);
+  });
 };
 
 window.closeHackathonAuth = function() {
-  document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
-  document.getElementById('auth-screen')?.classList.remove('hidden');
+  // Smoothly transition from hackathon auth back to main auth
+  switchTemplate('hackathon-auth-screen', 'auth-screen');
 };
 
 window.switchHackTab = function(tab) {
@@ -357,8 +459,7 @@ window.handleAuthStep = async function() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userData', JSON.stringify(data.user));
         
-        document.getElementById('step-credentials')?.classList.add('hidden');
-        document.getElementById('step-mfa')?.classList.remove('hidden');
+        switchTemplate('step-credentials', 'step-mfa');
       } else {
         // 🎨 Swapped alert for Toast
         showToastMsg('✅', "Qeydiyyat uğurludur! Giriş edin.");
@@ -405,17 +506,26 @@ window.loginAs = async function(role) {
   }
 
   APP.role = role;
-  document.getElementById('auth-screen')?.classList.add('hidden');
-  document.getElementById('hackathon-auth-screen')?.classList.add('hidden');
-  document.getElementById('app-shell')?.classList.remove('hidden');
-  document.getElementById('chat-toggle-btn')?.classList.remove('hidden');
+  localStorage.setItem('userRole', role);
+  const isHackathonHidden = document.getElementById('hackathon-auth-screen')?.classList.contains('hidden');
+  const activeAuthId = isHackathonHidden ? 'auth-screen' : 'hackathon-auth-screen';
   
-  updateUserUI();
-  buildSidebarNav(role);
-  initSocket();
-  
-  const defaultPages = { investor:'investor-dash', startup:'profile', admin:'kpi', superadmin:'kpi', organizer:'hackathon', mentor:'discovery', judge:'hackathon' };
-  navigateTo(defaultPages[role] || 'discovery');
+  // Trigger the seamless morph transition
+  switchTemplate(activeAuthId, 'app-shell', () => {
+    
+    // Everything in here happens instantly behind the scenes
+    document.getElementById('chat-toggle-btn')?.classList.remove('hidden');
+    updateUserUI();
+    buildSidebarNav(role);
+    initSocket();
+    
+    const defaultPages = { 
+      investor: 'investor-dash', startup: 'profile', admin: 'kpi', 
+      superadmin: 'kpi', organizer: 'hackathon', mentor: 'discovery', judge: 'hackathon' 
+    };
+    
+    navigateTo(defaultPages[role] || 'discovery');
+  });
 };
 
 function updateUserUI() {
@@ -1679,6 +1789,32 @@ window.runTeamMatch = async function() {
     }
   }
 };
+
+// ─── SCROLL REVEAL OBSERVER ───────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.15 // Triggers when 15% of the element is visible
+  };
+
+  const scrollObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target); // Only animate once
+      }
+    });
+  }, observerOptions);
+
+  // Attach observer to all elements with the 'scroll-reveal' class
+  document.querySelectorAll('.scroll-reveal').forEach(el => {
+    scrollObserver.observe(el);
+  });
+  
+  // Immediately trigger the hero section so it pops in on load
+  document.querySelector('.hero-section')?.classList.add('is-visible', 'scroll-reveal');
+});
 
 // ─── REPORTS ─────────────────────────────
 const REPORT_DATA = {

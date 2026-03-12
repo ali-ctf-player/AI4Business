@@ -11,10 +11,249 @@
 </head>
 <body>
 
+  <div id="landing-page" class="landing-page">
+  
+  <nav class="premium-nav">
+    <div class="nav-container">
+      
+      <div class="auth-logo" style="margin-bottom: 0;">
+        <div class="logo-mark logo-mark-sm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-400)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="logo-text logo-text-sm">SES<span class="logo-accent">.</span></span>
+      </div>
+
+      <div class="nav-links">
+        <a href="#">Features</a>
+        <a href="#">Hackathons</a>
+        <a href="#">Investors</a>
+        <a href="#">Pricing</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="nav-login" onclick="goToLogin('login')">Log In</button>
+        <button class="nav-cta" onclick="goToLogin('register')">Get Started</button>
+      </div>
+
+    </div>
+  </nav>
+
+  <section class="hero-section">
+   <h1 class="hero-title">
+      The Operating System for <br />
+      <span class="word-carousel">
+        <span class="text-gradient">Founders.</span>
+        <span class="text-gradient">Investors.</span>
+        <span class="text-gradient">Hackathons.</span>
+        <span class="text-gradient">Ecosystems.</span>
+      </span>
+    </h1>
+    <p class="hero-subtitle">
+      Connect, build, and scale your ideas. Join thousands of founders, investors, and mentors in a unified, beautifully designed platform.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-primary" onclick="goToLogin('register')" style="padding: 16px 32px; font-size: 18px;">Start Building Now</button>
+      <button class="btn-ghost" onclick="goToLogin('login')" style="padding: 16px 32px; font-size: 18px;">Sign In to Dashboard</button>
+    </div>
+
+    <div class="hero-app-mockup">
+      <div class="mockup-glass">
+        <div class="mockup-header">
+          <span class="mockup-dot" style="background: #ef4444;"></span>
+          <span class="mockup-dot" style="background: #f59e0b;"></span>
+          <span class="mockup-dot" style="background: #22c55e;"></span>
+        </div>
+        
+        <div class="mockup-body app-replica">
+          <div class="replica-sidebar">
+            <div class="r-logo"></div>
+            <div class="r-nav-item active"></div>
+            <div class="r-nav-item"></div>
+            <div class="r-nav-item"></div>
+            <div class="r-nav-item"></div>
+          </div>
+          
+          <div class="replica-main">
+            <div class="r-top-nav">
+              <div class="r-search"></div>
+              <div class="r-profile"></div>
+            </div>
+            
+            <div class="r-content-scroll">
+              <div class="r-title"></div>
+              
+              <div class="r-stats-row">
+                <div class="r-stat-card"><div class="r-line w-50"></div><div class="r-line title w-80"></div></div>
+                <div class="r-stat-card"><div class="r-line w-50"></div><div class="r-line title w-80"></div></div>
+                <div class="r-stat-card"><div class="r-line w-50"></div><div class="r-line title w-80"></div></div>
+              </div>
+              
+              <div class="r-charts-row">
+                <div class="r-chart-card">
+                  <div class="r-bars">
+                    <div class="r-bar" style="height: 40%"></div>
+                    <div class="r-bar" style="height: 70%"></div>
+                    <div class="r-bar" style="height: 50%"></div>
+                    <div class="r-bar" style="height: 90%"></div>
+                    <div class="r-bar" style="height: 60%"></div>
+                    <div class="r-bar" style="height: 80%"></div>
+                  </div>
+                </div>
+                <div class="r-chart-card">
+                  <div class="r-line-chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section scroll-reveal">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">10k+</div>
+        <div class="stat-label">Startups Funded</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">$500M</div>
+        <div class="stat-label">Capital Raised</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">50+</div>
+        <div class="stat-label">Hackathons Hosted</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section scroll-reveal">
+    <h2 class="section-title">Everything you need to scale</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <h3>Founder Profiles</h3>
+        <p>Showcase your metrics, team, and vision to top-tier investors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Investor Dealflow</h3>
+        <p>Access curated pipelines of high-growth startups matching your thesis.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>Hackathon Engine</h3>
+        <p>Organize, judge, and manage global hackathons with built-in AI matching.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section scroll-reveal" style="padding-bottom: 100px;">
+    <h2 class="section-title">Trusted by top ecosystems</h2>
+    <div class="carousel-container">
+      <div class="carousel-track">
+        <div class="carousel-card">Y Combinator</div>
+        <div class="carousel-card">Techstars</div>
+        <div class="carousel-card">Sequoia</div>
+        <div class="carousel-card">a16z</div>
+        <div class="carousel-card">500 Startups</div>
+        
+        <div class="carousel-card">Y Combinator</div>
+        <div class="carousel-card">Techstars</div>
+        <div class="carousel-card">Sequoia</div>
+        <div class="carousel-card">a16z</div>
+        <div class="carousel-card">500 Startups</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section scroll-reveal">
+    <h2 class="section-title">From idea to Series A in three steps</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <h3>Create your Profile</h3>
+        <p>Build a beautifully designed portfolio highlighting your metrics, pitch deck, and core team members.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <h3>Join the Ecosystem</h3>
+        <p>Participate in global hackathons, find co-founders using our AI matching, and connect with mentors.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <h3>Secure Funding</h3>
+        <p>Get discovered by top-tier VCs and angel investors actively looking for startups in your exact niche.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section scroll-reveal">
+    <h2 class="section-title">Loved by founders worldwide</h2>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"SES completely changed how we raised our seed round. The investor matching engine introduced us to our lead VC within 48 hours."</p>
+        <div class="testimonial-author">
+          <strong>Sarah Jenkins</strong>
+          <span>CEO, TechFlow</span>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"As a hackathon organizer, the built-in judging tools and automatic team matching saved me weeks of manual spreadsheet work."</p>
+        <div class="testimonial-author">
+          <strong>David Chen</strong>
+          <span>Director, Global Hacks</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-cta scroll-reveal">
+    <h2>Ready to scale your ecosystem?</h2>
+    <p>Join thousands of users building the future on SES.</p>
+    <button class="btn-primary" onclick="goToLogin('register')" style="padding: 18px 40px; font-size: 18px; margin-top: 32px; margin-left: auto; margin-right: auto; display: inline-flex;">
+      Get Started for Free
+    </button>
+  </section>
+
+  <footer class="landing-footer scroll-reveal">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo-text">SES<span class="logo-accent">.</span></div>
+        <p>The operating system for startup ecosystems.</p>
+      </div>
+      <div class="footer-links">
+        <div class="link-group">
+          <h4>Platform</h4>
+          <a href="#">Startups</a>
+          <a href="#">Investors</a>
+          <a href="#">Hackathons</a>
+        </div>
+        <div class="link-group">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="link-group">
+          <h4>Legal</h4>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 SES Platform. All rights reserved.
+    </div>
+  </footer>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════
      AUTH SCREEN
 ═══════════════════════════════════════════════════════ -->
-<div id="auth-screen" class="auth-screen">
+<div id="auth-screen" class="auth-screen hidden">
   <div class="auth-bg">
     <div class="auth-orb auth-orb-1"></div>
     <div class="auth-orb auth-orb-2"></div>
