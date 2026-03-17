@@ -756,7 +756,12 @@ let currentChatPeerId = null;
 function initSocket() {
   if (socket || !APP.token) return;
   try {
-    socket = io(`http://${_HOST}:5000`, {
+
+    const socketUrl = _HOST.includes('vercel.app') 
+      ? 'https://ai4business-9z7o.onrender.com' // Your Render URL (without /api)
+      : `http://${_HOST}:5000`;
+
+    socket = io(socketUrl, {
       auth: { token: APP.token } 
     });
 
