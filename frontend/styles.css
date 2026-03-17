@@ -270,26 +270,6 @@ body:not([data-theme="dark"]) .nav-container {
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-/* Center Links */
-.nav-links {
-  display: flex;
-  gap: 36px;
-  align-items: center;
-}
-
-.nav-links a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  transition: color 0.2s, transform 0.2s;
-}
-
-.nav-links a:hover {
-  color: var(--text-primary);
-  transform: translateY(-1px);
-}
 
 /* Right Actions Container */
 .nav-actions {
@@ -796,6 +776,163 @@ body:not([data-theme="dark"]) .nav-cta { background: var(--text-primary); color:
   font-size: 16px;
   letter-spacing: 0.03em;
   margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ELEGANT GLASS MORPHISM NAVIGATION
+   Modern, sleek design with subtle interactions
+═══════════════════════════════════════════════════════ */
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 4px;
+  border-radius: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item-link {
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 20px;
+  border-radius: 40px;
+  letter-spacing: 0.01em;
+  
+  /* Smooth transitions */
+  transition: all 0.2s ease-out;
+  z-index: 1;
+}
+
+/* Subtle background effect */
+.nav-item-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--blue-500), var(--cyan-500));
+  border-radius: 40px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.2s ease-out;
+}
+
+/* Elegant hover effect */
+.nav-item-link:hover {
+  color: #ffffff;
+  transform: translateY(-1px);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item-link:hover::before {
+  opacity: 0.9;
+}
+
+/* Active/Current page state */
+.nav-item-link.active,
+.nav-item-link[aria-current="page"] {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue-500), var(--cyan-500));
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.nav-item-link.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+}
+
+/* Subtle click effect */
+.nav-item-link:active {
+  transform: scale(0.97);
+}
+
+/* Dark mode refinement */
+[data-theme="dark"] .nav-links {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .nav-item-link {
+  color: #94a3b8;
+}
+
+/* Light mode refinement */
+body:not([data-theme="dark"]) .nav-links {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+body:not([data-theme="dark"]) .nav-item-link {
+  color: #475569;
+}
+
+body:not([data-theme="dark"]) .nav-item-link.active,
+body:not([data-theme="dark"]) .nav-item-link[aria-current="page"] {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--blue-500), var(--cyan-500));
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+
+body:not([data-theme="dark"]) .nav-item-link:hover::before {
+  opacity: 0.85;
+}
+
+/* Optional: Add a subtle separator for visual interest */
+.nav-links .nav-item-link:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 30%;
+  height: 40%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-links:hover .nav-item-link:not(:last-child)::after {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 2px;
+    padding: 3px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 30px;
+  }
+  
+  .nav-item-link {
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Optional: Add a smooth entrance animation */
+@keyframes navFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-links {
+  animation: navFadeIn 0.4s ease-out;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2661,32 +2798,46 @@ body[data-theme="dark"] .demo-float-btn:hover {
    PREMIUM VIEW TRANSITIONS (Motion Effects)
 ═══════════════════════════════════════════════════════ */
 /* Remove default crossfade behavior */
+/* ═══════════════════════════════════════════════════════
+   PREMIUM VIEW TRANSITIONS (Vercel / Linear Aesthetic)
+═══════════════════════════════════════════════════════ */
+/* 1. Subtle, high-end button press */
+.nav-cta:active, 
+.btn-primary:active {
+  transform: scale(0.98) !important;
+  filter: brightness(0.9);
+  transition: all 0.1s ease-out;
+}
+
+/* 2. Disable default browser crossfade */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-/* The Old Screen fading out and scaling back */
+/* 3. The Old Screen drops back, blurs, and fades */
 ::view-transition-old(root) {
-  animation: smoothScaleOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: depthFadeOut 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* The New Screen blurring in and scaling down to normal */
+/* 4. The New Screen rises up, unblurs, and fades in */
 ::view-transition-new(root) {
-  animation: smoothScaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: depthFadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@keyframes smoothScaleOut {
-  from { opacity: 1; transform: scale(1); filter: blur(0); }
-  to   { opacity: 0; transform: scale(0.96); filter: blur(8px); }
+/* The exact math used by premium design systems */
+@keyframes depthFadeOut {
+  from { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  to   { opacity: 0; transform: scale(0.97) translateY(-10px); filter: blur(5px); }
 }
 
-@keyframes smoothScaleIn {
-  from { opacity: 0; transform: scale(1.04); filter: blur(8px); }
-  to   { opacity: 1; transform: scale(1); filter: blur(0); }
+@keyframes depthFadeIn {
+  from { opacity: 0; transform: scale(1.03) translateY(10px); filter: blur(5px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
 }
 
+/* 5. Utility UI Animations (Kept from your original file) */
 @keyframes smoothEnter {
   0% {
     opacity: 0;
@@ -2713,7 +2864,6 @@ body[data-theme="dark"] .demo-float-btn:hover {
   }
 }
 
-/* Optional: Make tabs switch smoothly without height jumping */
 .tab-content-enter {
   animation: smoothEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -3179,3 +3329,128 @@ body[data-theme="dark"] .demo-float-btn:hover {
     display: none; /* Hides the center text links so they don't overlap the logo */
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   BUTTON PRESS & PAGE SLIDE TRANSITIONS 
+═══════════════════════════════════════════════════════ */
+
+/* 1. Satisfying Button Click State */
+.nav-cta:active, 
+.btn-primary:active {
+  transform: scale(0.96) translateY(2px) !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-login:active {
+  transform: scale(0.96);
+  opacity: 0.7;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. Page Slide Animations */
+/* Apply these classes via JavaScript when navigating */
+
+.slide-out-left {
+  animation: slideOutLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none; /* Prevents clicking while animating out */
+}
+
+.slide-in-right {
+  display: flex !important; /* Overrides the .hidden class */
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* The actual motion math for a premium, heavy slide */
+@keyframes slideOutLeft {
+  0% { 
+    opacity: 1; 
+    transform: translateX(0) scale(1); 
+    filter: blur(0); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: translateX(-15%) scale(0.98); 
+    filter: blur(4px); 
+    display: none;
+  }
+}
+
+@keyframes slideInRight {
+  0% { 
+    opacity: 0; 
+    transform: translateX(15%) scale(0.98); 
+    filter: blur(4px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateX(0) scale(1); 
+    filter: blur(0); 
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLLAPSIBLE SIDEBAR LOGIC
+═══════════════════════════════════════════════════════ */
+
+/* 1. Smooth Transitions for resizing */
+.sidebar {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.main-wrapper {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. The Collapse Button Styling */
+.collapse-btn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.collapse-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+/* 3. The Collapsed State */
+body.sidebar-collapsed {
+  --sidebar-w: 80px; /* Shrinks the entire layout automatically! */
+}
+
+/* Hide text when collapsed */
+body.sidebar-collapsed .logo-text,
+body.sidebar-collapsed .user-name,
+body.sidebar-collapsed .user-email,
+body.sidebar-collapsed .nav-item span:not(.nav-icon) {
+  display: none;
+}
+
+/* Center everything when collapsed */
+body.sidebar-collapsed .sidebar-header { justify-content: center !important; }
+body.sidebar-collapsed .sidebar-logo { margin: 0; }
+body.sidebar-collapsed .collapse-btn { display: none; } /* Hide button when collapsed */
+body.sidebar-collapsed .nav-item { justify-content: center; padding: 14px 0; position: relative; }
+body.sidebar-collapsed .nav-icon { margin: 0; font-size: 22px; }
+body.sidebar-collapsed .user-row { justify-content: center; margin: 0; }
+body.sidebar-collapsed .user-card { padding: 12px 0; display: flex; justify-content: center; }
+
+/* Reposition the Unread Badge to the corner of the icon */
+body.sidebar-collapsed #global-unread-badge {
+  position: absolute;
+  top: 6px; right: 20px; margin: 0 !important;
+  padding: 2px 5px !important; font-size: 10px !important;
+  border: 2px solid var(--bg-surface);
+}
+
+/* Hover over sidebar to expand it temporarily */
+body.sidebar-collapsed .sidebar:hover {
+  width: 256px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.3);
+}
+body.sidebar-collapsed .sidebar:hover .logo-text,
+body.sidebar-collapsed .sidebar:hover .user-name,
+body.sidebar-collapsed .sidebar:hover .user-email,
+body.sidebar-collapsed .sidebar:hover .nav-item span:not(.nav-icon) {
+  display: block; /* Reveal text on hover */
+}
+body.sidebar-collapsed .sidebar:hover .nav-item { justify-content: flex-start; padding: 9px 12px; }
+body.sidebar-collapsed .sidebar:hover .nav-icon { font-size: 18px; }
+body.sidebar-collapsed .sidebar:hover .sidebar-header { justify-content: space-between !important; }
+body.sidebar-collapsed .sidebar:hover .collapse-btn { display: flex; transform: rotate(180deg); }

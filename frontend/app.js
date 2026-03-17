@@ -185,12 +185,11 @@ function switchTemplate(currentId, nextId, callback = null) {
 
 // ─── LANDING PAGE NAVIGATION ─────────────────────────
 window.goToLogin = function(tab) {
-  // Smoothly transition from Landing Page to Auth Screen
+  // Use the browser's native View Transition API for a perfect, flash-free morph
   switchTemplate('landing-page', 'auth-screen', () => {
-    // If you have a specific tab to switch to (login vs register), do it here
-    if (typeof switchTab === 'function') {
-      switchTab(tab); 
-    }
+    // Select the correct tab (Login vs Register) once the transition starts
+    const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab === 'register' ? 'register' : 'login'}"]`);
+    if (tabBtn) tabBtn.click();
   });
 };
 
@@ -670,6 +669,7 @@ const NAV_CONFIG = {
     { page: 'registry',    icon: '📋', label: 'Registry' },
     { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
     { page: 'users',       icon: '👥', label: 'Users' },
+    { page: 'chat',        icon: '💬', label: 'Messages' }, // <-- ADDED HERE
     { page: 'reports',     icon: '📊', label: 'Reports' },
     { page: 'audit',       icon: '🔒', label: 'Audit Log' },
     { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
@@ -680,6 +680,7 @@ const NAV_CONFIG = {
     { page: 'registry',    icon: '📋', label: 'Registry' },
     { page: 'hackathon',   icon: '🏆', label: 'Hackathons' },
     { page: 'users',       icon: '👥', label: 'Users' },
+    { page: 'chat',        icon: '💬', label: 'Messages' }, // <-- ADDED HERE
     { page: 'reports',     icon: '📊', label: 'Reports' },
     { page: 'audit',       icon: '🔒', label: 'Audit Log' },
     { page: 'ai-examiner', icon: '🤖', label: 'AI Examiner' },
@@ -712,9 +713,11 @@ function buildSidebarNav(role) {
   const nav = document.getElementById('sidebar-nav');
   if (!nav) return;
   const items = NAV_CONFIG[role] || NAV_CONFIG.investor;
+  
   nav.innerHTML = items.map(i =>
     `<button type="button" class="nav-item" data-page="${i.page}" onclick="navigateTo('${i.page}')">
        <span class="nav-icon">${i.icon}</span><span>${i.label}</span>
+       ${i.page === 'chat' ? '<span id="global-unread-badge" style="display:none; margin-left:auto; background:var(--red-500); color:#fff; font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px; box-shadow:0 0 8px rgba(239, 68, 68, 0.4);">0</span>' : ''}
      </button>`
   ).join('');
 }
@@ -723,6 +726,21 @@ window.toggleSidebar = function() {
   document.getElementById('sidebar')?.classList.toggle('open');
   document.getElementById('sidebar-overlay')?.classList.toggle('hidden');
 };
+// ─── COLLAPSIBLE SIDEBAR ────────────────────────────────
+window.toggleSidebarCollapse = function() {
+  document.body.classList.toggle('sidebar-collapsed');
+  
+  // Save preference to local storage
+  const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+  localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+};
+
+// Check memory on load to see if they left it collapsed
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('sidebarCollapsed') === 'true') {
+    document.body.classList.add('sidebar-collapsed');
+  }
+});
 
 window.closeModal = function() {
   document.getElementById('modal-overlay')?.classList.add('hidden');
@@ -730,17 +748,42 @@ window.closeModal = function() {
   if (hdModal) hdModal.style.display = 'none';
 };
 
+
 // ─── SOCKET.IO CHAT ────────────────────────────────
 let socket = null;
+let currentChatPeerId = null; 
 
 function initSocket() {
-  if (socket || !APP.userData?.id) return;
+  if (socket || !APP.token) return;
   try {
-    socket = io(`http://${_HOST}:5000`);
-    socket.emit('join_room', APP.userData.id);
-    socket.on('receive_message', (msg) => {
-      appendChatMessage('other', msg.content);
+    socket = io(`http://${_HOST}:5000`, {
+      auth: { token: APP.token } 
     });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection failed:', err.message);
+    });
+
+    socket.on('receive_message', (msg) => {
+      if (msg.senderId === currentChatPeerId) {
+        appendChatMessage('other', msg.content);
+      } else {
+        showToastMsg('💬', 'New message received!');
+        
+        const sender = window.allChatContacts.find(c => (c._id || c.id) === msg.senderId);
+        if (sender) {
+          sender.unreadCount = (sender.unreadCount || 0) + 1;
+          filterChatContacts(); // Update internal chat list
+          updateGlobalUnreadBadge(); // Update main menu badge
+        } else {
+          fetchGlobalChatData(); // Fetch if we got a message from an unknown user
+        }
+      }
+    });
+
+    // Run a quiet background fetch on load to calculate initial badges
+    fetchGlobalChatData();
+
   } catch (e) {
     console.warn('Socket.io not available:', e);
   }
@@ -749,17 +792,207 @@ function initSocket() {
 window.sendMessage = function() {
   const input = document.getElementById('chat-input');
   const text  = input?.value.trim();
-  if (!text) return;
+  
+  // NEW: Prevent sending if input is empty or no user is selected
+  if (!text || !currentChatPeerId) {
+    if (!currentChatPeerId) showToastMsg('⚠️', 'Select a contact to chat with first');
+    return;
+  }
 
   appendChatMessage('self', text);
   input.value = '';
 
-  if (socket && APP.userData?.id) {
+  if (socket) {
+    // NEW: Send to the actual user's ID, not the hardcoded 'demo'
     socket.emit('send_message', {
-      senderId:   APP.userData.id,
-      receiverId: 'demo',
+      receiverId: currentChatPeerId, 
       content:    text
     });
+  }
+};
+
+// --- NEW CHAT FUNCTIONS ---
+
+window.allChatContacts = []; // Store contacts globally for quick filtering
+
+// NEW: Calculates the total unread messages across all users
+window.updateGlobalUnreadBadge = function() {
+  const badge = document.getElementById('global-unread-badge');
+  if (!badge) return;
+  const total = window.allChatContacts.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  
+  if (total > 0) {
+    badge.textContent = total;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+};
+
+// NEW: Background fetcher so the badge works even if you haven't opened the chat page yet
+window.fetchGlobalChatData = async function() {
+  if (!APP.token) return;
+  try {
+    const res = await fetch(`${API_URL}/messages/contacts`, {
+      headers: { 'Authorization': `Bearer ${APP.token}` }
+    });
+    window.allChatContacts = await res.json();
+    updateGlobalUnreadBadge();
+  } catch(err) { console.warn('Failed to background fetch chat data'); }
+};
+// 1. Fetch contacts from the server
+window.loadChatContacts = async function() {
+  const container = document.getElementById('contacts-list-container');
+  if (!container) return;
+
+  container.innerHTML = '<div style="padding:20px; text-align:center;"><span class="spinner"></span></div>';
+
+  try {
+    const res = await fetch(`${API_URL}/messages/contacts`, {
+      headers: { 'Authorization': `Bearer ${APP.token}` }
+    });
+    
+    window.allChatContacts = await res.json(); 
+    renderChatContacts(window.allChatContacts); 
+    updateGlobalUnreadBadge(); // Sync the sidebar badge
+  } catch (err) {
+    container.innerHTML = '<div style="padding:10px; color:var(--text-red-500);">Failed to load contacts.</div>';
+  }
+};
+
+// 2. Render the HTML for the contacts
+window.renderChatContacts = function(contactsToRender) {
+  const container = document.getElementById('contacts-list-container');
+  if (!container) return;
+
+  let html = '';
+  
+  if (contactsToRender.length === 0) {
+    html = '<div style="padding:10px; color:var(--text-muted); font-size:13px; text-align:center;">No users found.</div>';
+  } else {
+    contactsToRender.forEach(c => {
+      const userId = c._id || c.id; 
+      const initial = c.fullName ? c.fullName.charAt(0).toUpperCase() : '?';
+      const role = c.role ? c.role.charAt(0).toUpperCase() + c.role.slice(1) : 'User';
+      const isActive = (userId === currentChatPeerId) ? 'active' : '';
+
+      // NEW: Generate the Unread Badge HTML if there are unread messages
+      const unreadBadge = c.unreadCount > 0 
+        ? `<div style="background: var(--red-500); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 99px; margin-left: auto; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);">${c.unreadCount}</div>` 
+        : '';
+
+      html += `
+        <div class="contact-item ${isActive}" data-id="${userId}" onclick="selectChatContact('${userId}', '${c.fullName}')">
+          <div class="contact-avatar">${initial}</div>
+          <div class="contact-info">
+            <div class="contact-name">${c.fullName}</div>
+            <div class="contact-role">${role}</div>
+          </div>
+          ${unreadBadge}
+        </div>
+      `;
+    });
+  }
+  container.innerHTML = html;
+};
+
+// 3. Filter the contacts as the user types
+window.filterChatContacts = function() {
+  const query = document.getElementById('chat-search-input').value.toLowerCase();
+  
+  const filtered = window.allChatContacts.filter(c => {
+    const nameMatch = c.fullName && c.fullName.toLowerCase().includes(query);
+    const roleMatch = c.role && c.role.toLowerCase().includes(query);
+    return nameMatch || roleMatch; 
+  });
+  
+  renderChatContacts(filtered);
+};
+
+window.selectChatContact = function(userId, userName) {
+  const contact = window.allChatContacts.find(c => (c._id || c.id) === userId);
+  if (contact && contact.unreadCount > 0) {
+    contact.unreadCount = 0;
+    filterChatContacts(); 
+    updateGlobalUnreadBadge(); // Clear from the sidebar menu
+  }
+
+  document.querySelectorAll('.contact-item').forEach(el => {
+    if (el.dataset.id === userId) el.classList.add('active');
+    else el.classList.remove('active');
+  });
+
+  const input = document.getElementById('chat-input');
+  if (input) input.value = '';
+
+  loadChatHistory(userId, userName);
+};
+
+window.loadChatHistory = async function(peerId, peerName) {
+  currentChatPeerId = peerId;
+  
+  const peerNameEl = document.querySelector('.chat-peer-name');
+  if (peerNameEl) peerNameEl.textContent = peerName;
+
+  const box = document.getElementById('chat-messages');
+  if (!box) return;
+  box.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="spinner"></span> Loading history...</div>';
+
+  try {
+    const res = await fetch(`${API_URL}/messages/${peerId}`, {
+      headers: { 'Authorization': `Bearer ${APP.token}` }
+    });
+    const messages = await res.json();
+    box.innerHTML = ''; 
+    
+    if (messages.length === 0) {
+      box.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 20px;">No messages yet. Say hello to ${peerName}!</div>`;
+      return;
+    }
+
+    messages.forEach(msg => {
+      const senderType = msg.senderId === APP.userData.id ? 'self' : 'other';
+      appendChatMessage(senderType, msg.content);
+    });
+  } catch (err) {
+    box.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 20px;">Failed to load messages.</div>`;
+  }
+};
+
+window.loadChatHistory = async function(peerId, peerName) {
+  currentChatPeerId = peerId;
+  
+  // Update the UI header to show who we are talking to
+  const peerNameEl = document.querySelector('.chat-peer-name');
+  if (peerNameEl) peerNameEl.textContent = peerName;
+
+  const box = document.getElementById('chat-messages');
+  if (!box) return;
+  
+  box.innerHTML = '<div style="text-align:center; padding: 20px;"><span class="spinner"></span> Loading history...</div>';
+
+  try {
+    const res = await fetch(`${API_URL}/messages/${peerId}`, {
+      headers: { 'Authorization': `Bearer ${APP.token}` }
+    });
+    
+    const messages = await res.json();
+    box.innerHTML = ''; // Clear spinner
+    
+    if (messages.length === 0) {
+      box.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 20px;">No messages yet. Say hello to ${peerName}!</div>`;
+      return;
+    }
+
+    // Render the history
+    messages.forEach(msg => {
+      const senderType = msg.senderId === APP.userData.id ? 'self' : 'other';
+      appendChatMessage(senderType, msg.content);
+    });
+
+  } catch (err) {
+    box.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 20px;">Failed to load messages.</div>`;
+    console.error('Error fetching chat history:', err);
   }
 };
 
@@ -1892,6 +2125,7 @@ function _drawReportCharts(tab) {
 window.exportReport = function(type) { showToastMsg('✅', 'CSV exported!'); };
 
 // Main routing hook
+// Main routing hook
 function onPageLoad(pageId) {
   if (pageId === 'discovery')     { renderDiscovery(); }
   if (pageId === 'kpi')           { renderKPI(); }
@@ -1904,4 +2138,13 @@ function onPageLoad(pageId) {
   if (pageId === 'ai-examiner')   { renderAIExaminer(); }
   if (pageId === 'ai-hub')        { renderAIHub(); }
   if (pageId === 'reports')       { renderReports(); }
+  
+  // NEW: Initialize chat UI when opening the page
+  if (pageId === 'chat') { 
+    loadChatContacts(); 
+    const box = document.getElementById('chat-messages');
+    if (box) box.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-muted);">Select a contact from the sidebar to start chatting.</div>';
+    const peerNameEl = document.querySelector('.chat-peer-name');
+    if (peerNameEl) peerNameEl.textContent = 'Select a Contact';
+  }
 }
